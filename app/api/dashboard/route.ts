@@ -3,7 +3,8 @@ import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { channels, videos, users } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
-import { getValidYouTubeClient, fetchChannelAnalytics, fetchRecentVideos } from '@/lib/youtube/api';
+import { getValidYouTubeClient } from '@/lib/youtube/client';
+import { fetchChannelAnalytics, fetchRecentVideos } from '@/lib/youtube/api';
 export async function GET(request: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
