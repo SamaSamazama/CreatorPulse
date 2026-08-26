@@ -1,4 +1,5 @@
-import { google } from 'googleapis';
+import os
+content = """import { google } from 'googleapis';
 import { getValidYouTubeClient } from './client';
 export { getValidYouTubeClient };
 export async function fetchChannelAnalytics(youtube: any) {
@@ -12,3 +13,8 @@ export async function fetchRecentVideos(youtube: any, maxResults = 10) {
   const statsResponse = await youtube.videos.list({ part: ['snippet', 'statistics', 'contentDetails'], id: videoIds });
   return statsResponse.data.items || [];
 }
+"""
+os.makedirs('lib/youtube', exist_ok=True)
+with open('lib/youtube/api.ts', 'w', encoding='utf-8') as f:
+    f.write(content)
+print("FINAL FIX APPLIED")
