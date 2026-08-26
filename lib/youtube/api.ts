@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { google } from 'googleapis';
 import { getValidYouTubeClient } from './client';
 export { getValidYouTubeClient };

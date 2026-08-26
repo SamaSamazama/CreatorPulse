@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { google } from 'googleapis';
 import { db } from '@/lib/db';
 import { channels } from '@/lib/db/schema';

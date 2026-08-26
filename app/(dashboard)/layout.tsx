@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (

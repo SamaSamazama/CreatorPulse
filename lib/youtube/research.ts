@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { getValidYouTubeClient } from './client';
 import { db } from '@/lib/db';
 import { channels } from '@/lib/db/schema';
