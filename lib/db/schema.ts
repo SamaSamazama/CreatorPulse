@@ -1,4 +1,5 @@
 import { pgTable, uuid, varchar, text, integer, timestamp, boolean, pgEnum, jsonb } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 export const platformEnum = pgEnum('platform', ['youtube', 'tiktok', 'instagram']);
 export const subscriptionTierEnum = pgEnum('subscription_tier', ['free', 'starter', 'pro', 'agency']);
 export const videoStatusEnum = pgEnum('video_status', ['public', 'private', 'unlisted', 'draft']);
@@ -112,3 +113,11 @@ export const webhooks = pgTable('webhooks', {
   isActive: boolean('is_active').default(true).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+export const usersRelations = relations(users, ({ many }) => ({ channels: many(channels) }));
+export const channelsRelations = relations(channels, ({ one, many }) => ({
+  user: one(users, { fields: [channels.userId], references: [users.id] }),
+  videos: many(videos),
+}));
+export const videosRelations = relations(videos, ({ one }) => ({
+  channel: one(channels, { fields: [videos.channelId], references: [channels.id] }),
+}));

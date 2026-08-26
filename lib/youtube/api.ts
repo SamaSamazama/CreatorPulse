@@ -1,21 +1,5 @@
 import { google } from 'googleapis';
-import { db } from '@/lib/db';
-import { channels } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
-import { createOAuth2Client } from './client';
-export async function getValidYouTubeClient(channelId: string) {
-  const channel = await db.query.channels.findFirst({ where: eq(channels.id, channelId) });
-  if (!channel || !channel.refreshToken) throw new Error('Channel not found');
-  const oauth2Client = createOAuth2Client();
-  oauth2Client.setCredentials({ access_token: channel.accessToken, refresh_token: channel.refreshToken });
-  const isExpired = channel.tokenExpiry ? new Date(channel.tokenExpiry).getTime() < Date.now() + 300000 : true;
-  if (isExpired) {
-    const { credentials } = await oauth2Client.refreshAccessToken();
-    await db.update(channels).set({ accessToken: credentials.access_token, tokenExpiry: credentials.expiry_date ? new Date(credentials.expiry_date) : null }).where(eq(channels.id, channelId));
-    oauth2Client.setCredentials(credentials);
-  }
-  return google.youtube({ version: 'v3', auth: oauth2Client });
-}
+import { getValidYouTubeClient } from './client';
 export async function fetchChannelAnalytics(youtube: any) {
   const response = await youtube.channels.list({ part: ['snippet', 'statistics', 'status'], mine: true });
   return response.data.items?.[0];
