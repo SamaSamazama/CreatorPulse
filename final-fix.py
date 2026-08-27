@@ -1,4 +1,8 @@
-// @ts-nocheck
+import os
+
+file_path = 'lib/api-auth.ts'
+if os.path.exists(file_path):
+    content = """// @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { apiKeys } from '@/lib/db/schema';
@@ -23,3 +27,7 @@ export async function validatePublicApiKey(req: NextRequest) {
   await db.update(apiKeys).set({ lastUsedAt: new Date() }).where(eq(apiKeys.id, keyRecord.id));
   return { error: null, userId: keyRecord.userId };
 }
+"""
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(content)
+    print("FIXED API-AUTH.TS")
