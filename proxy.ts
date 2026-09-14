@@ -6,6 +6,8 @@ const isPublicRoute = createRouteMatcher([
   '/sign-up(.*)',
   '/api/webhooks(.*)',
   '/api/auth/youtube(.*)',
+  '/api/public/v1/channel',
+  '/api/public/v1/videos',
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
