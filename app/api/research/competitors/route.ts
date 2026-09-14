@@ -12,7 +12,6 @@ export async function GET() {
   if (!dbUser) return NextResponse.json([]);
   return NextResponse.json(await db.query.competitors.findMany({ where: eq(competitors.userId, dbUser.id) }));
 }
-export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
   const { channelIdentifier } = await request.json();

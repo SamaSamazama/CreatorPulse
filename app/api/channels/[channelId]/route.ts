@@ -15,7 +15,6 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   await db.delete(channels).where(eq(channels.id, channel.id));
   return NextResponse.json({ success: true });
 }
-export const dynamic = 'force-dynamic';
 export async function PUT(_request: NextRequest, { params }: { params: Promise<{ channelId: string }> }) {
   const { channelId } = await params;
   const { userId } = await auth();
