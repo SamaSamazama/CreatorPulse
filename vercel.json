@@ -1,34 +1,3 @@
 {
-  "crons": [
-    {
-      "path": "/api/sync",
-      "schedule": "0 */2 * * *"
-    }
-  ],
-  "services": {
-    "frontend": {
-      "root": ".",
-      "framework": "nextjs"
-    },
-    "ml-service": {
-      "root": "services/ml-service",
-      "entrypoint": "main:app"
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/api/ml-service(/.*)?",
-      "destination": {
-        "type": "service",
-        "service": "ml-service"
-      }
-    },
-    {
-      "source": "/(.*)",
-      "destination": {
-        "type": "service",
-        "service": "frontend"
-      }
-    }
-  ]
+  "regions": ["iad1"]
 }
