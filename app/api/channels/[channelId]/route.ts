@@ -24,7 +24,7 @@ export async function PUT(_request: NextRequest, { params }: { params: Promise<{
   const channel = await db.query.channels.findFirst({ where: and(eq(channels.id, channelId), eq(channels.userId, dbUser.id)) });
   if (!channel) return NextResponse.json({ error: 'Channel not found' }, { status: 404 });
   const state = encodeURIComponent(JSON.stringify({ userId: dbUser.id, clerkId: userId, reconnect: channel.id }));
-  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/youtube/callback?state=${state}`;
+  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/youtube/callback`;
   const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
   authUrl.searchParams.set('client_id', process.env.YOUTUBE_CLIENT_ID!);
   authUrl.searchParams.set('redirect_uri', redirectUri);
@@ -32,5 +32,6 @@ export async function PUT(_request: NextRequest, { params }: { params: Promise<{
   authUrl.searchParams.set('scope', 'https://www.googleapis.com/auth/youtube.readonly');
   authUrl.searchParams.set('access_type', 'offline');
   authUrl.searchParams.set('prompt', 'consent');
+  authUrl.searchParams.set('state', state);
   return NextResponse.json({ url: authUrl.toString() });
 }
