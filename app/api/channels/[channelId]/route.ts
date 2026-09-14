@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { channels, users } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
+export const dynamic = 'force-dynamic';
 export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ channelId: string }> }) {
   const { channelId } = await params;
   const { userId } = await auth();
@@ -14,6 +15,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   await db.delete(channels).where(eq(channels.id, channel.id));
   return NextResponse.json({ success: true });
 }
+export const dynamic = 'force-dynamic';
 export async function PUT(_request: NextRequest, { params }: { params: Promise<{ channelId: string }> }) {
   const { channelId } = await params;
   const { userId } = await auth();

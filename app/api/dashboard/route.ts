@@ -6,6 +6,7 @@ import { channels, videos, users } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { getValidYouTubeClient } from '@/lib/youtube/client';
 import { fetchChannelAnalytics, fetchRecentVideos } from '@/lib/youtube/api';
+export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

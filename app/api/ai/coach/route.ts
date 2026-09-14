@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { channels, videos, users } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { generateOpenRouterCompletion } from "@/lib/ai/openrouter";
+export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

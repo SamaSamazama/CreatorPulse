@@ -4,6 +4,7 @@ import { analyzeKeyword } from '@/lib/youtube/research';
 import { db } from '@/lib/db';
 import { keywordSearches, users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

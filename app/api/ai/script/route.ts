@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { generateOpenRouterCompletion } from "@/lib/ai/openrouter";
+export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   await auth();
   const { topic, tone, duration } = await request.json();

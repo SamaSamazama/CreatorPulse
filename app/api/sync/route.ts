@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { channels, videos } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { getValidYouTubeClient, fetchChannelAnalytics, fetchRecentVideos } from '@/lib/youtube/api';
+export const dynamic = 'force-dynamic';
 export async function POST() {
   try {
     const allChannels = await db.query.channels.findMany();

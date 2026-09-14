@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { webhooks, users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import crypto from 'crypto';
+export const dynamic = 'force-dynamic';
 export async function GET() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

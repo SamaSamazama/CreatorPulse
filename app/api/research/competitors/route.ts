@@ -5,12 +5,14 @@ import { db } from '@/lib/db';
 import { competitors, users, channels } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { getValidYouTubeClient } from '@/lib/youtube/client';
+export const dynamic = 'force-dynamic';
 export async function GET() {
   const { userId } = await auth();
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId!) });
   if (!dbUser) return NextResponse.json([]);
   return NextResponse.json(await db.query.competitors.findMany({ where: eq(competitors.userId, dbUser.id) }));
 }
+export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
   const { channelIdentifier } = await request.json();
