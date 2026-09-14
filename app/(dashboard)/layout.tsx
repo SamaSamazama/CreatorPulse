@@ -10,12 +10,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <nav className="space-y-2">
             <a href="/dashboard" className="block p-2 hover:bg-muted rounded">Dashboard</a>
             <a href="/channels" className="block p-2 hover:bg-muted rounded">Channels</a>
-            <a href="/dashboard/title-optimizer" className="block p-2 hover:bg-muted rounded">Title Optimizer</a>
-            <a href="/dashboard/tags" className="block p-2 hover:bg-muted rounded">Tags</a>
-            <a href="/dashboard/description-generator" className="block p-2 hover:bg-muted rounded">Description</a>
             <a href="/dashboard/research" className="block p-2 hover:bg-muted rounded">Research</a>
             <a href="/dashboard/ai-coach" className="block p-2 hover:bg-muted rounded">AI Coach</a>
             <a href="/dashboard/scripts" className="block p-2 hover:bg-muted rounded">Scripts</a>
+            <a href="/dashboard/title-optimizer" className="block p-2 hover:bg-muted rounded">Title Optimizer</a>
+            <a href="/dashboard/tags" className="block p-2 hover:bg-muted rounded">Tags</a>
+            <a href="/dashboard/description-generator" className="block p-2 hover:bg-muted rounded">Description</a>
+            <a href="/dashboard/thumbnails" className="block p-2 hover:bg-muted rounded">Thumbnails</a>
+            <a href="/dashboard/calendar" className="block p-2 hover:bg-muted rounded">Calendar</a>
+            <a href="/dashboard/bulk-editor" className="block p-2 hover:bg-muted rounded">Bulk Editor</a>
+            <a href="/dashboard/ab-testing" className="block p-2 hover:bg-muted rounded">A/B Testing</a>
+            <a href="/dashboard/outlier" className="block p-2 hover:bg-muted rounded">Outliers</a>
+            <a href="/dashboard/revenue" className="block p-2 hover:bg-muted rounded">Revenue</a>
             <a href="/dashboard/settings" className="block p-2 hover:bg-muted rounded">Settings</a>
           </nav>
         </div>
