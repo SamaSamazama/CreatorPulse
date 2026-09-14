@@ -25,8 +25,9 @@ async function loadDashboard() {
     const res = await fetch(`${base}/api/public/v1/channel`, {
       headers: { 'X-API-Key': apiKey },
     });
-    if (!res.ok) throw new Error('Failed');
-    const data = await res.json();
+    const text = await res.text();
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${text}`);
+    const data = JSON.parse(text);
     const channels = data.channels || [];
     if (!channels.length) {
       document.getElementById('status').textContent = 'No channels connected';

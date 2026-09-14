@@ -15,11 +15,30 @@ export async function validatePublicApiKey(req: NextRequest) {
   if (!apiKey) return { error: NextResponse.json({ error: 'Missing API key' }, { status: 401 }), userId: null };
   const keyRecord = await db.query.apiKeys.findFirst({ where: eq(apiKeys.apiKey, apiKey) });
   if (!keyRecord) return { error: NextResponse.json({ error: 'Invalid API key' }, { status: 401 }), userId: null };
-  
   const rateLimitKey = `ratelimit:${apiKey}`;
   const current = await redis.get(rateLimitKey);
   if (current && (current as number) >= 60) return { error: NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 }), userId: null };
   await redis.set(rateLimitKey, ((current as number) || 0) + 1, { ex: 60 });
   await db.update(apiKeys).set({ lastUsedAt: new Date() }).where(eq(apiKeys.id, keyRecord.id));
   return { error: null, userId: keyRecord.userId };
+}
+export function corsResponse(body: any, status = 200) {
+  return NextResponse.json(body, {
+    status,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, X-API-Key',
+    },
+  });
+}
+export function corsOptions() {
+  return NextResponse.json(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, X-API-Key',
+    },
+  });
 }

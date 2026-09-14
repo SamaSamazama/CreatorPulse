@@ -31,8 +31,9 @@
         ...options.headers,
       },
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.json();
+    const text = await res.text();
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${text}`);
+    try { return JSON.parse(text); } catch { return text; }
   }
 
   function createSidebar() {
