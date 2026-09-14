@@ -5,8 +5,6 @@
   const VERCEL_URL = 'https://my-creator-pulse.vercel.app';
   let sidebarVisible = false;
   let sidebar = null;
-  let overlayVisible = false;
-  let overlay = null;
 
   function getApiBase() {
     return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
@@ -70,56 +68,29 @@
             <button id="cp-refresh-btn" class="cp-btn cp-btn-secondary">Refresh</button>
           </div>
           <div id="cp-video-list"></div>
-          <button id="cp-overlay-btn" class="cp-btn cp-btn-primary" style="margin-top:12px;">Show on YouTube</button>
+          <div class="cp-nav-title">Features</div>
+          <div class="cp-nav">
+            <a href="/dashboard" target="_blank" class="cp-nav-item">📊 Dashboard</a>
+            <a href="/channels" target="_blank" class="cp-nav-item">📺 Channels</a>
+            <a href="/dashboard/research" target="_blank" class="cp-nav-item">🔍 Research</a>
+            <a href="/dashboard/ai-coach" target="_blank" class="cp-nav-item">🤖 AI Coach</a>
+            <a href="/dashboard/scripts" target="_blank" class="cp-nav-item">📝 Scripts</a>
+            <a href="/dashboard/title-optimizer" target="_blank" class="cp-nav-item">🏆 Title Optimizer</a>
+            <a href="/dashboard/tags" target="_blank" class="cp-nav-item">🏷️ Tags</a>
+            <a href="/dashboard/description-generator" target="_blank" class="cp-nav-item">📄 Description</a>
+            <a href="/dashboard/thumbnails" target="_blank" class="cp-nav-item">🖼️ Thumbnails</a>
+            <a href="/dashboard/calendar" target="_blank" class="cp-nav-item">📅 Calendar</a>
+            <a href="/dashboard/bulk-editor" target="_blank" class="cp-nav-item">📦 Bulk Editor</a>
+            <a href="/dashboard/ab-testing" target="_blank" class="cp-nav-item">🧪 A/B Testing</a>
+            <a href="/dashboard/outlier" target="_blank" class="cp-nav-item">📈 Outliers</a>
+            <a href="/dashboard/revenue" target="_blank" class="cp-nav-item">💰 Revenue</a>
+            <a href="/dashboard/settings" target="_blank" class="cp-nav-item">⚙️ Settings</a>
+          </div>
         </div>
       </div>
     `;
     document.body.appendChild(sidebar);
     attachSidebarListeners();
-  }
-
-  function createOverlay() {
-    if (document.getElementById('creatorpulse-overlay')) return;
-    overlay = document.createElement('div');
-    overlay.id = 'creatorpulse-overlay';
-    overlay.innerHTML = `
-      <div id="cp-overlay-header">
-        <div class="cp-logo">CreatorPulse</div>
-        <button id="cp-overlay-close">×</button>
-      </div>
-      <div id="cp-overlay-content">
-        <div id="cp-video-stats"></div>
-        <div id="cp-ai-suggestions"></div>
-      </div>
-    `;
-    document.body.appendChild(overlay);
-    attachOverlayListeners();
-  }
-
-  function attachOverlayListeners() {
-    document.getElementById('cp-overlay-close')?.addEventListener('click', () => {
-      overlayVisible = false;
-      overlay.style.display = 'none';
-    });
-  }
-
-  async function loadOverlay() {
-    if (!overlay) createOverlay();
-    try {
-      const videoId = new URLSearchParams(window.location.search).get('v');
-      if (!videoId) return;
-      const data = await fetchWithAuth(`/api/public/v1/videos?videoId=${videoId}`);
-      const video = data.videos?.[0];
-      if (!video) return;
-      overlayVisible = true;
-      overlay.style.display = 'block';
-      document.getElementById('cp-video-stats').innerHTML = `
-        <div class="cp-stat"><span class="cp-stat-label">Views</span><span class="cp-stat-value">${(video.viewCount || 0).toLocaleString()}</span></div>
-        <div class="cp-stat"><span class="cp-stat-label">Likes</span><span class="cp-stat-value">${(video.likeCount || 0).toLocaleString()}</span></div>
-      `;
-    } catch (e) {
-      console.error('CreatorPulse overlay error:', e);
-    }
   }
 
   function attachSidebarListeners() {
@@ -153,10 +124,6 @@
     });
 
     document.getElementById('cp-refresh-btn')?.addEventListener('click', () => loadDashboard());
-
-    document.getElementById('cp-overlay-btn')?.addEventListener('click', () => {
-      loadOverlay();
-    });
   }
 
   async function loadDashboard() {

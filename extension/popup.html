@@ -10,11 +10,16 @@
     .btn-primary { background: #dc2626; color: white; }
     .btn-primary:hover { background: #b91c1c; }
     .btn-secondary { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
+    .btn-secondary:hover { background: #e5e7eb; }
     .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
     .stat { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 8px; text-align: center; }
     .stat-label { display: block; font-size: 11px; color: #6b7280; }
     .stat-value { display: block; font-size: 14px; font-weight: 700; margin-top: 2px; }
     .hidden { display: none; }
+    .nav-title { font-weight: 700; margin-top: 16px; margin-bottom: 8px; }
+    .nav { display: flex; flex-direction: column; gap: 6px; }
+    .nav-item { display: block; padding: 8px 10px; border-radius: 6px; text-decoration: none; color: #374151; background: #f9fafb; border: 1px solid #e5e7eb; font-size: 13px; }
+    .nav-item:hover { background: #f3f4f6; border-color: #d1d5db; }
   </style>
 </head>
 <body>
@@ -31,6 +36,24 @@
     </div>
     <button id="syncBtn" class="btn btn-secondary">Sync Now</button>
     <button id="openAppBtn" class="btn btn-secondary">Open Dashboard</button>
+    <div class="nav-title">Features</div>
+    <div class="nav">
+      <a href="/dashboard" target="_blank" class="nav-item">📊 Dashboard</a>
+      <a href="/channels" target="_blank" class="nav-item">📺 Channels</a>
+      <a href="/dashboard/research" target="_blank" class="nav-item">🔍 Research</a>
+      <a href="/dashboard/ai-coach" target="_blank" class="nav-item">🤖 AI Coach</a>
+      <a href="/dashboard/scripts" target="_blank" class="nav-item">📝 Scripts</a>
+      <a href="/dashboard/title-optimizer" target="_blank" class="nav-item">🏆 Title Optimizer</a>
+      <a href="/dashboard/tags" target="_blank" class="nav-item">🏷️ Tags</a>
+      <a href="/dashboard/description-generator" target="_blank" class="nav-item">📄 Description</a>
+      <a href="/dashboard/thumbnails" target="_blank" class="nav-item">🖼️ Thumbnails</a>
+      <a href="/dashboard/calendar" target="_blank" class="nav-item">📅 Calendar</a>
+      <a href="/dashboard/bulk-editor" target="_blank" class="nav-item">📦 Bulk Editor</a>
+      <a href="/dashboard/ab-testing" target="_blank" class="nav-item">🧪 A/B Testing</a>
+      <a href="/dashboard/outlier" target="_blank" class="nav-item">📈 Outliers</a>
+      <a href="/dashboard/revenue" target="_blank" class="nav-item">💰 Revenue</a>
+      <a href="/dashboard/settings" target="_blank" class="nav-item">⚙️ Settings</a>
+    </div>
   </div>
   <script src="popup.js"></script>
 </body>
