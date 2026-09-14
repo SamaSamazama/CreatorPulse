@@ -10,9 +10,11 @@ export async function GET(request: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const forceSync = request.nextUrl.searchParams.get('sync') === 'true';
+  const channelId = request.nextUrl.searchParams.get('channelId');
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId), with: { channels: true } });
   if (!dbUser || !dbUser.channels.length) return NextResponse.json({ channels: [], requiresOnboarding: true });
-  const primaryChannel = dbUser.channels[0];
+  const primaryChannel = channelId ? dbUser.channels.find((c: any) => c.id === channelId) : dbUser.channels[0];
+  if (!primaryChannel) return NextResponse.json({ channels: dbUser.channels, requiresOnboarding: true, selectedChannelId: null });
   if (forceSync) {
     try {
       const youtube = await getValidYouTubeClient(primaryChannel.id);
@@ -26,5 +28,5 @@ export async function GET(request: NextRequest) {
     } catch (error) { console.error('Sync error:', error); }
   }
   const channelVideos = await db.query.videos.findMany({ where: eq(videos.channelId, primaryChannel.id), orderBy: [desc(videos.publishedAt)], limit: 20 });
-  return NextResponse.json({ channel: primaryChannel, videos: channelVideos, requiresOnboarding: false });
+  return NextResponse.json({ channel: primaryChannel, channels: dbUser.channels, videos: channelVideos, requiresOnboarding: false });
 }

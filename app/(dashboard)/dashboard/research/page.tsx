@@ -22,10 +22,11 @@ export default function ResearchPage() {
 }
 function KeywordTab() {
   const [query, setQuery] = useState("");
-  const { mutate: analyze, data, isPending } = useKeywordResearch();
+  const { mutate: analyze, data, isPending, error } = useKeywordResearch();
   return (
     <Card><CardContent className="pt-6 space-y-4">
       <form onSubmit={(e) => { e.preventDefault(); analyze(query); }} className="flex gap-2"><Input placeholder="e.g., nextjs tutorial" value={query} onChange={(e) => setQuery(e.target.value)} /><Button type="submit" disabled={isPending}>{isPending ? <Loader2 className="animate-spin" /> : <Search className="mr-2 h-4 w-4" />}Analyze</Button></form>
+      {error && <p className="text-sm text-red-500">{(error as any)?.message || 'Failed to analyze keywords'}</p>}
       {data && <Table><TableHeader><TableRow><TableHead>Title</TableHead><TableHead className="text-right">Views</TableHead><TableHead className="text-right">Score</TableHead></TableRow></TableHeader><TableBody>{data.results.map((r: any) => (<TableRow key={r.videoId}><TableCell className="truncate max-w-xs">{r.title}</TableCell><TableCell className="text-right">{r.viewCount.toLocaleString()}</TableCell><TableCell className="text-right"><Badge>{r.opportunityScore}</Badge></TableCell></TableRow>))}</TableBody></Table>}
     </CardContent></Card>
   );

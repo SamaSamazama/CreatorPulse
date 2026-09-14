@@ -1,14 +1,16 @@
 // @ts-nocheck
 import { getValidYouTubeClient } from './client';
 import { db } from '@/lib/db';
-import { channels } from '@/lib/db/schema';
+import { channels, users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 export interface KeywordResult {
   videoId: string; title: string; channelTitle: string; channelId: string;
   viewCount: number; subscriberCount: number; publishedAt: string; opportunityScore: number;
 }
-export async function analyzeKeyword(userId: string, query: string): Promise<KeywordResult[]> {
-  const userChannel = await db.query.channels.findFirst({ where: eq(channels.userId, userId) });
+export async function analyzeKeyword(clerkId: string, query: string): Promise<KeywordResult[]> {
+  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, clerkId) });
+  if (!dbUser) throw new Error('No connected user found');
+  const userChannel = await db.query.channels.findFirst({ where: eq(channels.userId, dbUser.id) });
   if (!userChannel) throw new Error('No connected channel found');
   const youtube = await getValidYouTubeClient(userChannel.id);
   const searchResponse = await youtube.search.list({ part: ['snippet'], q: query, type: ['video'], order: 'relevance', maxResults: 15 });

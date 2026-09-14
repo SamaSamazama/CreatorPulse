@@ -8,6 +8,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <h2 className="text-xl font-bold">CreatorPulse</h2>
           <nav className="space-y-2">
             <a href="/dashboard" className="block p-2 hover:bg-muted rounded">Dashboard</a>
+            <a href="/channels" className="block p-2 hover:bg-muted rounded">Channels</a>
             <a href="/dashboard/research" className="block p-2 hover:bg-muted rounded">Research</a>
             <a href="/dashboard/ai-coach" className="block p-2 hover:bg-muted rounded">AI Coach</a>
             <a href="/dashboard/settings" className="block p-2 hover:bg-muted rounded">Settings</a>

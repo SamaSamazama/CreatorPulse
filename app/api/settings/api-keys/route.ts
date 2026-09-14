@@ -6,16 +6,20 @@ import { eq } from 'drizzle-orm';
 import crypto from 'crypto';
 export async function GET() {
   const { userId } = await auth();
-  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId!) });
-  const keys = await db.query.apiKeys.findMany({ where: eq(apiKeys.userId, dbUser!.id) });
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId) });
+  if (!dbUser) return NextResponse.json({ keys: [] });
+  const keys = await db.query.apiKeys.findMany({ where: eq(apiKeys.userId, dbUser.id) });
   return NextResponse.json(keys.map(k => ({ ...k, apiKey: `${k.apiKey.substring(0, 8)}...${k.apiKey.substring(k.apiKey.length - 4)}` })));
 }
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const { name } = await req.json();
-  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId!) });
+  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId) });
+  if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 });
   const newKey = `cp_live_${crypto.randomBytes(24).toString('hex')}`;
-  return NextResponse.json((await db.insert(apiKeys).values({ userId: dbUser!.id, apiKey: newKey, name: name || 'Default' }).returning())[0]);
+  return NextResponse.json((await db.insert(apiKeys).values({ userId: dbUser.id, apiKey: newKey, name: name || 'Default' }).returning())[0]);
 }
 export async function DELETE(req: NextRequest) {
   const { id } = await req.json();

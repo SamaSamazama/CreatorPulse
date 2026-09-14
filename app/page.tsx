@@ -1,7 +1,15 @@
+"use client";
 import { Button } from "@/components/ui/button";
-import { SignInButton, SignUpButton } from "@clerk/nextjs";
+import { SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
 import { ArrowRight, Zap } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 export default function LandingPage() {
+  const { isSignedIn, isLoaded } = useUser();
+  const router = useRouter();
+  useEffect(() => { if (isLoaded && isSignedIn) router.push("/dashboard"); }, [isSignedIn, isLoaded, router]);
+  if (!isLoaded) return null;
+  if (isSignedIn) return null;
   return (
     <div className="flex flex-col min-h-screen">
       <header className="px-6 py-4 border-b flex justify-between items-center"><h1 className="text-2xl font-bold">CreatorPulse</h1><div className="flex gap-4"><SignInButton mode="modal"><Button variant="ghost">Log in</Button></SignInButton><SignUpButton mode="modal"><Button>Get Started</Button></SignUpButton></div></header>
