@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 async function fetchDashboardData(forceSync = false, channelId?: string) {
   const params = new URLSearchParams();
   if (forceSync) params.set('sync', 'true');
@@ -8,5 +8,17 @@ async function fetchDashboardData(forceSync = false, channelId?: string) {
   return res.json();
 }
 export function useDashboard(channelId?: string) {
-  return useQuery({ queryKey: ['dashboard', channelId], queryFn: () => fetchDashboardData(false, channelId), refetchOnWindowFocus: true, staleTime: 1000 * 30, refetchInterval: 1000 * 60 * 2 });
+  return useQuery({
+    queryKey: ['dashboard', channelId],
+    queryFn: () => fetchDashboardData(false, channelId),
+    refetchOnWindowFocus: true,
+    staleTime: 1000 * 30,
+    refetchInterval: 1000 * 60 * 2,
+  });
+}
+export function useSyncDashboard() {
+  const queryClient = useQueryClient();
+  return async (channelId?: string) => {
+    await queryClient.invalidateQueries({ queryKey: ['dashboard', channelId] });
+  };
 }

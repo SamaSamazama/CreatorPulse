@@ -2,9 +2,11 @@
   'use strict';
 
   const API_BASE = 'http://localhost:3000';
-  const VERCEL_URL = 'https://web-mm0eicvxn-samasamazamas-projects.vercel.app';
+  const VERCEL_URL = 'https://my-creator-pulse.vercel.app';
   let sidebarVisible = false;
   let sidebar = null;
+  let overlayVisible = false;
+  let overlay = null;
 
   function getApiBase() {
     return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
@@ -68,11 +70,56 @@
             <button id="cp-refresh-btn" class="cp-btn cp-btn-secondary">Refresh</button>
           </div>
           <div id="cp-video-list"></div>
+          <button id="cp-overlay-btn" class="cp-btn cp-btn-primary" style="margin-top:12px;">Show on YouTube</button>
         </div>
       </div>
     `;
     document.body.appendChild(sidebar);
     attachSidebarListeners();
+  }
+
+  function createOverlay() {
+    if (document.getElementById('creatorpulse-overlay')) return;
+    overlay = document.createElement('div');
+    overlay.id = 'creatorpulse-overlay';
+    overlay.innerHTML = `
+      <div id="cp-overlay-header">
+        <div class="cp-logo">CreatorPulse</div>
+        <button id="cp-overlay-close">×</button>
+      </div>
+      <div id="cp-overlay-content">
+        <div id="cp-video-stats"></div>
+        <div id="cp-ai-suggestions"></div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    attachOverlayListeners();
+  }
+
+  function attachOverlayListeners() {
+    document.getElementById('cp-overlay-close')?.addEventListener('click', () => {
+      overlayVisible = false;
+      overlay.style.display = 'none';
+    });
+  }
+
+  async function loadOverlay() {
+    if (!overlay) createOverlay();
+    try {
+      const videoId = new URLSearchParams(window.location.search).get('v');
+      if (!videoId) return;
+      const data = await fetchWithAuth(`/api/public/v1/videos?videoId=${videoId}`);
+      const video = data.videos?.[0];
+      if (!video) return;
+      overlayVisible = true;
+      overlay.style.display = 'block';
+      document.getElementById('cp-video-stats').innerHTML = `
+        <div class="cp-stat"><span class="cp-stat-label">Views</span><span class="cp-stat-value">${(video.viewCount || 0).toLocaleString()}</span></div>
+        <div class="cp-stat"><span class="cp-stat-label">Likes</span><span class="cp-stat-value">${(video.likeCount || 0).toLocaleString()}</span></div>
+      `;
+    } catch (e) {
+      console.error('CreatorPulse overlay error:', e);
+    }
   }
 
   function attachSidebarListeners() {
@@ -106,6 +153,10 @@
     });
 
     document.getElementById('cp-refresh-btn')?.addEventListener('click', () => loadDashboard());
+
+    document.getElementById('cp-overlay-btn')?.addEventListener('click', () => {
+      loadOverlay();
+    });
   }
 
   async function loadDashboard() {

@@ -1,0 +1,11 @@
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { generateOpenRouterCompletion } from "@/lib/ai/openrouter";
+export async function POST(request: NextRequest) {
+  await auth();
+  const { topic, title, tone } = await request.json();
+  const model = process.env.OPENROUTER_COACH_MODEL || "liquid/lfm-2.5-2.6b:free";
+  const prompt = `Write a YouTube video description. Title: "${title}". Topic: ${topic}. Tone: ${tone}. Include timestamps, call-to-action, and social links placeholders.`;
+  const result = await generateOpenRouterCompletion(model, prompt, "You are a YouTube description writer.");
+  return NextResponse.json({ description: result });
+}

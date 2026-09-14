@@ -1,5 +1,5 @@
 "use client";
-import { useDashboard } from "@/lib/hooks/use-dashboard";
+import { useDashboard, useSyncDashboard } from "@/lib/hooks/use-dashboard";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { Users, Eye, Video, TrendingUp, RefreshCw, VideoIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ export default function DashboardPage() {
   const [chartData, setChartData] = useState<{ name: string; views: number }[]>([]);
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
   const { data, isLoading, refetch, isRefetching } = useDashboard(selectedChannelId || undefined);
+  const syncDashboard = useSyncDashboard();
   useEffect(() => {
     if (data?.requiresOnboarding) router.push("/onboarding");
     if (data?.channels?.length && !selectedChannelId) setSelectedChannelId(data.channels[0].id);
@@ -21,13 +22,14 @@ export default function DashboardPage() {
   }, [data, router, selectedChannelId]);
   const currentChannel = data?.channels?.find((c: any) => c.id === selectedChannelId) || data?.channel;
   const handleChannelChange = (channelId: string) => { setSelectedChannelId(channelId); };
+  const handleSync = async () => { await syncDashboard(selectedChannelId || undefined); refetch(); };
   if (isLoading) return <div className="p-8 space-y-4"><Skeleton className="h-32 w-full" /><Skeleton className="h-96 w-full" /></div>;
   const channels = data?.channels || (data?.channel ? [data.channel] : []);
   return (
     <div className="flex flex-col gap-6 p-6 md:p-8">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <Button onClick={() => refetch()} disabled={isRefetching}><RefreshCw className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`} />Sync</Button>
+        <Button onClick={handleSync} disabled={isRefetching}><RefreshCw className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`} />Sync</Button>
       </div>
       {channels.length > 1 && (
         <div className="flex items-center gap-4">
