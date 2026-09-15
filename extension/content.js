@@ -12,6 +12,10 @@
       : VERCEL_URL;
   }
 
+  function getAppBase() {
+    return getApiBase();
+  }
+
   async function getApiKey() {
     return new Promise((resolve) => {
       chrome.storage.local.get(['apiKey'], (result) => {
@@ -39,6 +43,7 @@
   function createSidebar() {
     sidebar = document.createElement('div');
     sidebar.id = 'creatorpulse-sidebar';
+    const appBase = getAppBase();
     sidebar.innerHTML = `
       <div id="cp-sidebar-header">
         <div class="cp-logo">CreatorPulse</div>
@@ -71,21 +76,21 @@
           <div id="cp-video-list"></div>
           <div class="cp-nav-title">Features</div>
           <div class="cp-nav">
-            <a href="/dashboard" target="_blank" class="cp-nav-item">📊 Dashboard</a>
-            <a href="/channels" target="_blank" class="cp-nav-item">📺 Channels</a>
-            <a href="/dashboard/research" target="_blank" class="cp-nav-item">🔍 Research</a>
-            <a href="/dashboard/ai-coach" target="_blank" class="cp-nav-item">🤖 AI Coach</a>
-            <a href="/dashboard/scripts" target="_blank" class="cp-nav-item">📝 Scripts</a>
-            <a href="/dashboard/title-optimizer" target="_blank" class="cp-nav-item">🏆 Title Optimizer</a>
-            <a href="/dashboard/tags" target="_blank" class="cp-nav-item">🏷️ Tags</a>
-            <a href="/dashboard/description-generator" target="_blank" class="cp-nav-item">📄 Description</a>
-            <a href="/dashboard/thumbnails" target="_blank" class="cp-nav-item">🖼️ Thumbnails</a>
-            <a href="/dashboard/calendar" target="_blank" class="cp-nav-item">📅 Calendar</a>
-            <a href="/dashboard/bulk-editor" target="_blank" class="cp-nav-item">📦 Bulk Editor</a>
-            <a href="/dashboard/ab-testing" target="_blank" class="cp-nav-item">🧪 A/B Testing</a>
-            <a href="/dashboard/outlier" target="_blank" class="cp-nav-item">📈 Outliers</a>
-            <a href="/dashboard/revenue" target="_blank" class="cp-nav-item">💰 Revenue</a>
-            <a href="/dashboard/settings" target="_blank" class="cp-nav-item">⚙️ Settings</a>
+            <a href="${appBase}/dashboard" target="_blank" class="cp-nav-item">📊 Dashboard</a>
+            <a href="${appBase}/channels" target="_blank" class="cp-nav-item">📺 Channels</a>
+            <a href="${appBase}/dashboard/research" target="_blank" class="cp-nav-item">🔍 Research</a>
+            <a href="${appBase}/dashboard/ai-coach" target="_blank" class="cp-nav-item">🤖 AI Coach</a>
+            <a href="${appBase}/dashboard/scripts" target="_blank" class="cp-nav-item">📝 Scripts</a>
+            <a href="${appBase}/dashboard/title-optimizer" target="_blank" class="cp-nav-item">🏆 Title Optimizer</a>
+            <a href="${appBase}/dashboard/tags" target="_blank" class="cp-nav-item">🏷️ Tags</a>
+            <a href="${appBase}/dashboard/description-generator" target="_blank" class="cp-nav-item">📄 Description</a>
+            <a href="${appBase}/dashboard/thumbnails" target="_blank" class="cp-nav-item">🖼️ Thumbnails</a>
+            <a href="${appBase}/dashboard/calendar" target="_blank" class="cp-nav-item">📅 Calendar</a>
+            <a href="${appBase}/dashboard/bulk-editor" target="_blank" class="cp-nav-item">📦 Bulk Editor</a>
+            <a href="${appBase}/dashboard/ab-testing" target="_blank" class="cp-nav-item">🧪 A/B Testing</a>
+            <a href="${appBase}/dashboard/outlier" target="_blank" class="cp-nav-item">📈 Outliers</a>
+            <a href="${appBase}/dashboard/revenue" target="_blank" class="cp-nav-item">💰 Revenue</a>
+            <a href="${appBase}/dashboard/settings" target="_blank" class="cp-nav-item">⚙️ Settings</a>
           </div>
         </div>
       </div>
