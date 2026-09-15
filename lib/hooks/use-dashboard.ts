@@ -19,6 +19,7 @@ export function useDashboard(channelId?: string) {
 export function useSyncDashboard() {
   const queryClient = useQueryClient();
   return async (channelId?: string) => {
+    await fetch(`/api/dashboard?${new URLSearchParams({ sync: 'true', ...(channelId ? { channelId } : {}) })}`);
     await queryClient.invalidateQueries({ queryKey: ['dashboard', channelId] });
   };
 }
