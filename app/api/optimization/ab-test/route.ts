@@ -8,7 +8,7 @@ import { getValidYouTubeClient } from "@/lib/youtube/client";
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
   const { videoId, variantTitle, action } = await request.json();
-  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId!) });
+  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   const userChannel = await db.query.channels.findFirst({ where: eq(channels.userId, dbUser!.id) });
   const youtube = await getValidYouTubeClient(userChannel!.id);
   if (action === "start") {
@@ -32,6 +32,6 @@ export async function POST(request: NextRequest) {
 }
 export async function GET() {
   const { userId } = await auth();
-  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId!) });
+  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   return NextResponse.json(await db.query.abTests.findMany({ where: eq(abTests.userId, dbUser!.id) }));
 }

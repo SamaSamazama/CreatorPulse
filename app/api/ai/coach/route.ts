@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { prompt } = await request.json();
-  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId) });
+  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   if (!dbUser) return NextResponse.json({ error: "User not found" }, { status: 404 });
   const userChannels = await db.query.channels.findMany({
     where: eq(channels.userId, dbUser.id),

@@ -8,7 +8,7 @@ import { fetchRevenueData } from "@/lib/youtube/analytics";
 export async function GET() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId) });
+  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   if (!dbUser) return NextResponse.json({ error: "User not found" }, { status: 404 });
   const userChannel = await db.query.channels.findFirst({ where: eq(channels.userId, dbUser.id) });
   if (!userChannel) return NextResponse.json({ error: "Connect channel first" }, { status: 400 });

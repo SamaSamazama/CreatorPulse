@@ -1,22 +1,41 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
-import { ArrowRight, Zap } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+
 export default function LandingPage() {
   const { isSignedIn, isLoaded } = useUser();
   const router = useRouter();
-  useEffect(() => { if (isLoaded && isSignedIn) router.push("/dashboard"); }, [isSignedIn, isLoaded, router]);
-  if (!isLoaded) return null;
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      router.push("/dashboard");
+    }
+  }, [isLoaded, isSignedIn, router]);
+
   if (isSignedIn) return null;
+
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="px-6 py-4 border-b flex justify-between items-center"><h1 className="text-2xl font-bold">CreatorPulse</h1><div className="flex gap-4"><SignInButton mode="modal"><Button variant="ghost">Log in</Button></SignInButton><SignUpButton mode="modal"><Button>Get Started</Button></SignUpButton></div></header>
+      <header className="px-6 py-4 border-b flex justify-between items-center">
+        <h1 className="text-2xl font-bold">CreatorPulse</h1>
+        <div className="flex gap-4">
+          <SignInButton mode="modal">
+            <Button variant="ghost">Log in</Button>
+          </SignInButton>
+          <SignUpButton mode="modal">
+            <Button>Get Started</Button>
+          </SignUpButton>
+        </div>
+      </header>
       <main className="flex-1 flex flex-col items-center justify-center text-center px-6 py-20 space-y-8">
         <h1 className="text-5xl md:text-7xl font-bold">Stop Guessing.<br/><span className="text-primary">Start Predicting.</span></h1>
         <p className="text-xl text-muted-foreground max-w-2xl">AI-powered YouTube growth platform.</p>
-        <SignUpButton mode="modal"><Button size="lg" className="text-lg px-8">Start Free <ArrowRight className="ml-2 h-5 w-5" /></Button></SignUpButton>
+        <SignUpButton mode="modal">
+          <Button size="lg" className="text-lg px-8">Start Free <ArrowRight className="ml-2 h-5 w-5" /></Button>
+        </SignUpButton>
       </main>
     </div>
   );

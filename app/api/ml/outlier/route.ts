@@ -7,7 +7,7 @@ import { eq, desc } from "drizzle-orm";
 export async function POST() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json([]);
-  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId) });
+  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   if (!dbUser) return NextResponse.json([]);
   const channel = await db.query.channels.findFirst({ where: eq(channels.userId, dbUser.id) });
   if (!channel) return NextResponse.json([]);

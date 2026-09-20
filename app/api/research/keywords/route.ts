@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   const { query } = await request.json();
   try {
     const results = await analyzeKeyword(userId, query);
-    const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId) });
+    const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
     if (dbUser) await db.insert(keywordSearches).values({ userId: dbUser.id, query, results });
     return NextResponse.json({ query, results });
   } catch (error: any) { return NextResponse.json({ error: error.message }, { status: 500 }); }

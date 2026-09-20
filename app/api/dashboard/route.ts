@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const forceSync = request.nextUrl.searchParams.get('sync') === 'true';
   const channelId = request.nextUrl.searchParams.get('channelId');
-  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId), with: { channels: true } });
+  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string), with: { channels: true } });
   if (!dbUser || !dbUser.channels.length) return NextResponse.json({ channels: [], requiresOnboarding: true });
   const primaryChannel = channelId ? dbUser.channels.find((c: any) => c.id === channelId) : dbUser.channels[0];
   if (!primaryChannel) return NextResponse.json({ channels: dbUser.channels, requiresOnboarding: true, selectedChannelId: null });

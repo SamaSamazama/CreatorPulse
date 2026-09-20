@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "CreatorPulse",
-  "version": "0.1.0",
-  "description": "AI YouTube Growth - TubeBuddy/VidIQ style overlay",
+  "version": "0.2.0",
+  "description": "AI YouTube Growth - TubeBuddy/VidIQ style overlay with Studio integration",
   "permissions": [
     "storage",
     "activeTab",
@@ -11,8 +11,9 @@
   ],
   "host_permissions": [
     "https://www.youtube.com/*",
+    "https://studio.youtube.com/*",
     "http://localhost:3000/*",
-    "https://web-mm0eicvxn-samasamazamas-projects.vercel.app/*"
+    "https://my-project-sooty-tau-51.vercel.app/*"
   ],
   "background": {
     "service_worker": "background.js",
@@ -23,6 +24,12 @@
       "matches": ["https://www.youtube.com/*"],
       "js": ["content.js"],
       "css": ["content.css"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": ["https://studio.youtube.com/*"],
+      "js": ["studio.js"],
+      "css": ["studio.css"],
       "run_at": "document_end"
     }
   ],
@@ -42,7 +49,7 @@
   "web_accessible_resources": [
     {
       "resources": ["icons/*"],
-      "matches": ["https://www.youtube.com/*"]
+      "matches": ["https://www.youtube.com/*", "https://studio.youtube.com/*"]
     }
   ]
 }

@@ -8,14 +8,14 @@ import { getValidYouTubeClient } from '@/lib/youtube/client';
 export const dynamic = 'force-dynamic';
 export async function GET() {
   const { userId } = await auth();
-  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId!) });
+  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   if (!dbUser) return NextResponse.json([]);
   return NextResponse.json(await db.query.competitors.findMany({ where: eq(competitors.userId, dbUser.id) }));
 }
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
   const { channelIdentifier } = await request.json();
-  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId!) });
+  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 });
   try {
     const userChannel = await db.query.channels.findFirst({ where: eq(channels.userId, dbUser.id) });

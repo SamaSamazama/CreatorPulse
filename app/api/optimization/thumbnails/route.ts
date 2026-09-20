@@ -12,14 +12,14 @@ export async function POST(request: NextRequest) {
   const { prompt } = await request.json();
   const imagePrompt = `Describe a highly engaging YouTube thumbnail in vivid visual detail for: ${prompt}`;
   const description = await generateOpenRouterCompletion(process.env.OPENROUTER_THUMBNAIL_MODEL || process.env.OPENROUTER_COACH_MODEL || "liquid/lfm-2.5-2.6b:free", imagePrompt, "You are a thumbnail design expert. Return only a concise visual description.");
-  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId) });
+  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   if (dbUser) await db.insert(thumbnailGenerations).values({ userId: dbUser.id, prompt, imageUrl: description });
   return NextResponse.json({ description, prompt });
 }
 export async function GET() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json([]);
-  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId) });
+  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   if (!dbUser) return NextResponse.json([]);
   return NextResponse.json(await db.query.thumbnailGenerations.findMany({ where: eq(thumbnailGenerations.userId, dbUser.id), limit: 20 }));
 }

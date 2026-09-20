@@ -7,7 +7,7 @@ import { getValidYouTubeClient } from "@/lib/youtube/client";
 export async function PUT(request: NextRequest) {
   const { userId } = await auth();
   const { videoIds, appendTags, appendDescription } = await request.json();
-  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId!) });
+  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   const userChannel = await db.query.channels.findFirst({ where: eq(channels.userId, dbUser!.id) });
   const youtube = await getValidYouTubeClient(userChannel!.id);
   for (const vid of videoIds) {

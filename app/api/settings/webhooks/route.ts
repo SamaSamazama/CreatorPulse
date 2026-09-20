@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId) });
+  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   if (!dbUser) return NextResponse.json([]);
   return NextResponse.json(await db.query.webhooks.findMany({ where: eq(webhooks.userId, dbUser.id) }));
 }
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const { url, events } = await req.json();
-  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId) });
+  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 });
   return NextResponse.json((await db.insert(webhooks).values({ userId: dbUser.id, url, secret: crypto.randomBytes(16).toString('hex'), events: events || ['video.published'] }).returning())[0]);
 }

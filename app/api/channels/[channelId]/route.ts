@@ -8,7 +8,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   const { channelId } = await params;
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId) });
+  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 });
   const channel = await db.query.channels.findFirst({ where: and(eq(channels.id, channelId), eq(channels.userId, dbUser.id)) });
   if (!channel) return NextResponse.json({ error: 'Channel not found' }, { status: 404 });
@@ -19,7 +19,7 @@ export async function PUT(_request: NextRequest, { params }: { params: Promise<{
   const { channelId } = await params;
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId) });
+  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 });
   const channel = await db.query.channels.findFirst({ where: and(eq(channels.id, channelId), eq(channels.userId, dbUser.id)) });
   if (!channel) return NextResponse.json({ error: 'Channel not found' }, { status: 404 });

@@ -7,7 +7,7 @@ import { eq } from 'drizzle-orm';
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   const { priceId } = await req.json();
-  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId!) });
+  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   let stripeCustomerId = dbUser!.stripeCustomerId;
   if (!stripeCustomerId) {
     const customer = await stripe.customers.create({ email: dbUser!.email, metadata: { clerkId: userId! } });

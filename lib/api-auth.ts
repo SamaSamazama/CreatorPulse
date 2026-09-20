@@ -6,39 +6,50 @@ import { eq } from 'drizzle-orm';
 import { Redis } from '@upstash/redis';
 
 const isRedisValid = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_URL.startsWith('https');
-const redis = isRedisValid 
-  ? new Redis({ url: process.env.UPSTASH_REDIS_REST_URL, token: process.env.UPSTASH_REDIS_REST_TOKEN || 'fake' }) 
+const redis = isRedisValid
+  ? new Redis({ url: process.env.UPSTASH_REDIS_REST_URL, token: process.env.UPSTASH_REDIS_REST_TOKEN || 'fake' })
   : { get: async () => null, set: async () => {} };
 
 export async function validatePublicApiKey(req: NextRequest) {
+  if (process.env.ENABLE_PUBLIC_API === 'false') {
+    return { error: NextResponse.json({ error: 'Public API is currently disabled' }, { status: 503 }), userId: null };
+  }
   const apiKey = req.headers.get('x-api-key') || req.headers.get('authorization')?.replace('Bearer ', '');
   if (!apiKey) return { error: NextResponse.json({ error: 'Missing API key' }, { status: 401 }), userId: null };
   const keyRecord = await db.query.apiKeys.findFirst({ where: eq(apiKeys.apiKey, apiKey) });
   if (!keyRecord) return { error: NextResponse.json({ error: 'Invalid API key' }, { status: 401 }), userId: null };
-  const rateLimitKey = `ratelimit:${apiKey}`;
-  const current = await redis.get(rateLimitKey);
-  if (current && (current as number) >= 60) return { error: NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 }), userId: null };
-  await redis.set(rateLimitKey, ((current as number) || 0) + 1, { ex: 60 });
+  if (isRedisValid) {
+    const rateLimitKey = `ratelimit:${apiKey}`;
+    const current = await redis.get(rateLimitKey);
+    if (current && (current as number) >= 60) return { error: NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 }), userId: null };
+    await redis.set(rateLimitKey, ((current as number) || 0) + 1, { ex: 60 });
+  }
   await db.update(apiKeys).set({ lastUsedAt: new Date() }).where(eq(apiKeys.id, keyRecord.id));
   return { error: null, userId: keyRecord.userId };
 }
-export function corsResponse(body: any, status = 200) {
+
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://my-creator-pulse-4yqru39wb-samasamazamas-projects.vercel.app',
+  'https://web-mm0eicvxn-samasamazamas-projects.vercel.app',
+];
+
+const getCorsHeaders = (origin: string) => ({
+  'Access-Control-Allow-Origin': allowedOrigins.includes(origin) ? origin : allowedOrigins[0],
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, X-API-Key',
+  'Access-Control-Max-Age': '86400',
+});
+
+export function corsResponse(body: any, status = 200, origin = '') {
   return NextResponse.json(body, {
     status,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, X-API-Key',
-    },
+    headers: getCorsHeaders(origin),
   });
 }
-export function corsOptions() {
-  return NextResponse.json(null, {
+export function corsOptions(origin = '') {
+  return new Response(null, {
     status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, X-API-Key',
-    },
+    headers: getCorsHeaders(origin),
   });
 }
