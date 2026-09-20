@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, text, integer, timestamp, boolean, pgEnum, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, text, integer, timestamp, boolean, pgEnum, jsonb, real } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 export const platformEnum = pgEnum('platform', ['youtube', 'tiktok', 'instagram']);
 export const subscriptionTierEnum = pgEnum('subscription_tier', ['free', 'starter', 'pro', 'agency']);
@@ -319,6 +319,20 @@ export const playlistActions = pgTable('playlist_actions', {
   action: varchar('action', { length: 50 }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+export const transcriptAnalyses = pgTable('transcript_analyses', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  channelId: uuid('channel_id').references(() => channels.id, { onDelete: 'set null' }),
+  videoId: uuid('video_id').references(() => videos.id, { onDelete: 'set null' }),
+  transcriptText: text('transcript_text'),
+  keywords: jsonb('keywords').$type<string[]>(),
+  sentiment: real('sentiment'),
+  summary: text('summary'),
+  recommendations: jsonb('recommendations').$type<string[]>(),
+  analyzedAt: timestamp('analyzed_at').defaultNow().notNull(),
+});
+
 export const usersRelations = relations(users, ({ many }) => ({ channels: many(channels) }));
 export const channelsRelations = relations(channels, ({ one, many }) => ({
   user: one(users, { fields: [channels.userId], references: [users.id] }),
@@ -411,4 +425,10 @@ export const uploadProfilesRelations = relations(uploadProfiles, ({ one }) => ({
 
 export const playlistActionsRelations = relations(playlistActions, ({ one }) => ({
   user: one(users, { fields: [playlistActions.userId], references: [users.id] }),
+}));
+
+export const transcriptAnalysesRelations = relations(transcriptAnalyses, ({ one }) => ({
+  user: one(users, { fields: [transcriptAnalyses.userId], references: [users.id] }),
+  channel: one(channels, { fields: [transcriptAnalyses.channelId], references: [channels.id] }),
+  video: one(videos, { fields: [transcriptAnalyses.videoId], references: [videos.id] }),
 }));
