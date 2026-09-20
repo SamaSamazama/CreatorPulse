@@ -3,14 +3,23 @@ import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { videos, users } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { computeSeoScore } from '@/lib/scoring';
 export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
   const { videoId, title, description, tags } = await request.json();
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
-  const score = Math.floor(Math.random() * 30) + 70;
-  await db.update(videos).set({ seoScore: score }).where(eq(videos.id, videoId));
-  return NextResponse.json({ score, suggestions: ['Add primary keyword to title', 'Include keyword in first 100 characters', 'Add 3-5 relevant tags'] });
+  const score = computeSeoScore({ title, description, tags });
+  const suggestions: string[] = [];
+  if (!title || title.length < 40) suggestions.push('Add primary keyword to title and aim for 40-70 characters');
+  if (!description || description.length < 150) suggestions.push('Expand description to 150-300 words and include target keywords');
+  const tagCount = Array.isArray(tags) ? tags.length : 0;
+  if (tagCount < 5) suggestions.push('Add 5-10 relevant tags including broad and long-tail keywords');
+  if (suggestions.length === 0) suggestions.push('Title, description, and tags look solid for this video.');
+  if (videoId) {
+    await db.update(videos).set({ seoScore: score }).where(eq(videos.id, videoId));
+  }
+  return NextResponse.json({ score, suggestions });
 }
 export async function GET() {
   const { userId } = await auth();

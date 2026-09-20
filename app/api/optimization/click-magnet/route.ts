@@ -3,28 +3,18 @@ import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { videos, users } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
-import { generateOpenRouterCompletion } from '@/lib/ai/openrouter';
+import { computeClickMagnetScore } from '@/lib/scoring';
 export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
   const { videoId, title, description } = await request.json();
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
-  const model = process.env.OPENROUTER_TITLE_MODEL || 'google/gemini-2.0-flash-exp:free';
-  const systemInstruction = 'You are a YouTube optimization expert. Score the combination of title and thumbnail for click-through rate potential. Return JSON with score (1-100) and reasoning.';
-  const prompt = `Title: ${title}\nDescription: ${description}\nScore this for CTR potential.`;
-  const response = await generateOpenRouterCompletion(model, prompt, systemInstruction);
-  let score = 75;
-  try {
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0]);
-      score = parsed.score || 75;
-    }
-  } catch {
-    score = parseInt(response.match(/\d+/)?.[0] || '75');
+  const score = computeClickMagnetScore({ title, description });
+  const reasoning = `This title/description combination has a ${score}/100 estimated CTR potential based on length and structure heuristics.`;
+  if (videoId) {
+    await db.update(videos).set({ clickMagnetScore: score }).where(eq(videos.id, videoId));
   }
-  await db.update(videos).set({ clickMagnetScore: score }).where(eq(videos.id, videoId));
-  return NextResponse.json({ score, reasoning: response });
+  return NextResponse.json({ score, reasoning });
 }
 export async function GET() {
   const { userId } = await auth();
