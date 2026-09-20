@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     views: Number(((userViewCount - competitorViewCount) / Math.max(competitorViewCount, 1) * 100).toFixed(2)),
     subscribers: Number(((userSubscriberCount - competitorSubscriberCount) / Math.max(competitorSubscriberCount, 1) * 100).toFixed(2)),
   };
-  const entry = await db.insert(channelytics).values({ userId: dbUser!.id, competitorId: competitorId || '', competitorName: competitorName || competitor?.name || 'Unknown', metrics, comparison }).returning();
+  const entry = await db.insert(channelytics).values({ userId: dbUser!.id, competitorId: competitorId || '', competitorName: competitorName || competitor?.title || 'Unknown', data: { metrics, comparison } }).returning();
   return NextResponse.json({ entry: entry[0] });
 }
 export async function GET() {

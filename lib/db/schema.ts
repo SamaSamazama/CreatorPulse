@@ -130,7 +130,7 @@ export const channelAudits = pgTable('channel_audits', {
   userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   channelId: uuid('channel_id').references(() => channels.id, { onDelete: 'cascade' }).notNull(),
   overallScore: integer('overall_score').notNull(),
-  metrics: jsonb('metrics').$type<any[]>(),
+  metrics: jsonb('metrics').$type<Record<string, number>>(),
   recommendations: jsonb('recommendations').$type<string[]>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
@@ -284,7 +284,8 @@ export const channelytics = pgTable('channelytics', {
   id: uuid('id').defaultRandom().primaryKey(),
   userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   competitorId: uuid('competitor_id').references(() => competitors.id, { onDelete: 'cascade' }).notNull(),
-  data: jsonb('data').$type<any[]>(),
+  competitorName: varchar('competitor_name', { length: 255 }),
+  data: jsonb('data').$type<{ metrics?: Record<string, number>; comparison?: Record<string, number> }>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
