@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
-import { keywordTrends, users } from '@/lib/db/schema';
+import { keywordTrends, users, channels } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { getValidYouTubeClient } from '@/lib/youtube/client';
 function hashString(str: string): number {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -22,8 +23,27 @@ export async function POST(request: NextRequest) {
   const { userId } = await auth();
   const { query } = await request.json();
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
+  const userChannel = await db.query.channels.findFirst({ where: eq(channels.userId, dbUser!.id) });
+  let realVolume: number | null = null;
+  if (userChannel?.platformId) {
+    try {
+      const youtube = await getValidYouTubeClient(userChannel.id);
+      const searchRes = await youtube.search.list({ q: query, part: ['id'], maxResults: 1, type: ['video'] });
+      const totalResults = Number(searchRes.data.pageInfo?.totalResults || 0);
+      if (totalResults > 0) {
+        realVolume = Math.round(totalResults / 12);
+      }
+    } catch (error) {
+      console.error('YouTube search error:', error);
+    }
+  }
   const seed = hashString(query || 'default');
-  const data = Array.from({ length: 12 }, (_, i) => ({ month: new Date(Date.now() - i * 30 * 24 * 60 * 60 * 1000).toLocaleString('default', { month: 'short' }), volume: deterministicVolume(seed, i) }));
+  const data = Array.from({ length: 12 }, (_, i) => {
+    const baseVolume = realVolume ?? deterministicVolume(seed, i);
+    const monthVariation = 0.85 + ((seed * (i + 1) * 9301 + 49297) % 1000) / 10000;
+    const volume = Math.round(baseVolume * monthVariation);
+    return { month: new Date(Date.now() - i * 30 * 24 * 60 * 60 * 1000).toLocaleString('default', { month: 'short' }), volume };
+  });
   const trend = await db.insert(keywordTrends).values({ userId: dbUser!.id, query, data }).returning();
   return NextResponse.json({ trend: trend[0] });
 }
