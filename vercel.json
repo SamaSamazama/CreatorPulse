@@ -5,6 +5,5 @@
       "path": "/api/sync",
       "schedule": "0 0 * * *"
     }
-  ],
-  "packageManager": "pnpm@11.24.0"
+  ]
 }
