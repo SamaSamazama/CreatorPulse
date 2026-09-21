@@ -9,17 +9,22 @@ export async function POST(request: NextRequest) {
   const { userId } = await auth();
   const { videoId, currentTitle, currentDescription } = await request.json();
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
-  const userVideos = await db.query.videos.findMany({ where: eq(videos.channelId, dbUser!.id), orderBy: [desc(videos.publishedAt)], limit: 5 });
-  const model = process.env.OPENROUTER_TITLE_MODEL || 'google/gemini-2.0-flash-exp:free';
-  const systemInstruction = 'You are a YouTube SEO expert. Generate 5 optimized title variations for the given video. Return as JSON array of strings.';
-  const prompt = `Current title: ${currentTitle}\nDescription: ${currentDescription}\nRecent videos: ${userVideos.map(v => v.title).join(', ')}\nGenerate 5 optimized titles.`;
-  const response = await generateOpenRouterCompletion(model, prompt, systemInstruction);
-  let titles: string[] = [];
   try {
-    const jsonMatch = response.match(/\[[\s\S]*\]/);
-    if (jsonMatch) titles = JSON.parse(jsonMatch[0]);
-  } catch {
-    titles = response.split('\n').filter((line: string) => line.trim().length > 5).slice(0, 5);
+    const userVideos = await db.query.videos.findMany({ where: eq(videos.channelId, dbUser!.id), orderBy: [desc(videos.publishedAt)], limit: 5 });
+    const model = process.env.OPENROUTER_TITLE_MODEL || 'google/gemini-2.0-flash-exp:free';
+    const systemInstruction = 'You are a YouTube SEO expert. Generate 5 optimized title variations for the given video. Return as JSON array of strings.';
+    const prompt = `Current title: ${currentTitle}\nDescription: ${currentDescription}\nRecent videos: ${userVideos.map(v => v.title).join(', ')}\nGenerate 5 optimized titles.`;
+    const response = await generateOpenRouterCompletion(model, prompt, systemInstruction);
+    let titles: string[] = [];
+    try {
+      const jsonMatch = response.match(/\[[\s\S]*\]/);
+      if (jsonMatch) titles = JSON.parse(jsonMatch[0]);
+    } catch {
+      titles = response.split('\n').filter((line: string) => line.trim().length > 5).slice(0, 5);
+    }
+    return NextResponse.json({ titles });
+  } catch (error: any) {
+    console.error("Title variations error:", error);
+    return NextResponse.json({ error: error.message || "Title variations failed" }, { status: 500 });
   }
-  return NextResponse.json({ titles });
 }

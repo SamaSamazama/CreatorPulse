@@ -4,8 +4,13 @@ import { generateOpenRouterCompletion } from "@/lib/ai/openrouter";
 export async function POST(request: NextRequest) {
   await auth();
   const { topic, title, tone } = await request.json();
-  const model = process.env.OPENROUTER_COACH_MODEL || "liquid/lfm-2.5-2.6b:free";
-  const prompt = `Write a YouTube video description. Title: "${title}". Topic: ${topic}. Tone: ${tone}. Include timestamps, call-to-action, and social links placeholders.`;
-  const result = await generateOpenRouterCompletion(model, prompt, "You are a YouTube description writer.");
-  return NextResponse.json({ description: result });
+  try {
+    const model = process.env.OPENROUTER_COACH_MODEL || "liquid/lfm-2.5-2.6b:free";
+    const prompt = `Write a YouTube video description. Title: "${title}". Topic: ${topic}. Tone: ${tone}. Include timestamps, call-to-action, and social links placeholders.`;
+    const result = await generateOpenRouterCompletion(model, prompt, "You are a YouTube description writer.");
+    return NextResponse.json({ description: result });
+  } catch (error: any) {
+    console.error("Description generation error:", error);
+    return NextResponse.json({ error: error.message || "Description generation failed" }, { status: 500 });
+  }
 }
