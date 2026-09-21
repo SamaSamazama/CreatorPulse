@@ -1,3 +1,3 @@
 module.exports = {
-  ignoreScripts: false,
-}
+  ignoreScripts: true,
+};
