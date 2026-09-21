@@ -5,7 +5,7 @@ export async function POST(request: NextRequest) {
   await auth();
   const { title, description, topic } = await request.json();
   try {
-    const model = process.env.OPENROUTER_COACH_MODEL || "liquid/lfm-2.5-2.6b:free";
+    const model = process.env.OPENROUTER_COACH_MODEL || "meta-llama/llama-4-maverick:free";
     const prompt = `Generate YouTube tags for a video. Title: "${title}". Description: "${description}". Topic: ${topic}. Return comma-separated tags only, no explanation.`;
     const result = await generateOpenRouterCompletion(model, prompt, "You are a YouTube SEO expert.");
     const tags = result.split(",").map((t: string) => t.trim()).filter(Boolean);

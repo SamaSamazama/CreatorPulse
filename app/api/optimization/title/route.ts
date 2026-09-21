@@ -5,7 +5,7 @@ export async function POST(request: NextRequest) {
   await auth();
   const { title, topic } = await request.json();
   try {
-    const model = process.env.OPENROUTER_COACH_MODEL || "liquid/lfm-2.5-2.6b:free";
+    const model = process.env.OPENROUTER_COACH_MODEL || "meta-llama/llama-4-maverick:free";
     const prompt = `Optimize this YouTube title for maximum CTR: "${title}". Topic: ${topic}. Return 5 optimized titles, one per line, no numbering.`;
     const result = await generateOpenRouterCompletion(model, prompt, "You are a YouTube title optimization expert.");
     const titles = result.split("\n").filter((t: string) => t.trim().length > 0).slice(0, 5);

@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       subs: c.subscriberCount,
       recentVideos: c.videos?.map((v) => ({ title: v.title, views: v.viewCount })) || [],
     }));
-    const model = process.env.OPENROUTER_COACH_MODEL || "google/gemini-2.0-flash-exp:free";
+    const model = process.env.OPENROUTER_COACH_MODEL || "meta-llama/llama-4-maverick:free";
     const systemInstruction = "You are CreatorPulse AI, an expert YouTube channel coach. Provide highly specific, data-driven advice.";
     const response = await generateOpenRouterCompletion(
       model,
