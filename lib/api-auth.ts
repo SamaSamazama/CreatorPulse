@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { apiKeys } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
@@ -30,8 +31,9 @@ export async function validatePublicApiKey(req: NextRequest) {
 
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://my-creator-pulse-4yqru39wb-samasamazamas-projects.vercel.app',
-  'https://web-mm0eicvxn-samasamazamas-projects.vercel.app',
+  'https://my-project-sooty-tau-51.vercel.app',
+  'https://www.youtube.com',
+  'https://studio.youtube.com',
 ];
 
 const getCorsHeaders = (origin: string) => ({
@@ -52,4 +54,18 @@ export function corsOptions(origin = '') {
     status: 204,
     headers: getCorsHeaders(origin),
   });
+}
+export async function getUserIdFromRequest(request: NextRequest) {
+  const apiKey = request.headers.get('x-api-key') || request.headers.get('authorization')?.replace('Bearer ', '');
+  if (apiKey) {
+    const keyRecord = await db.query.apiKeys.findFirst({ where: eq(apiKeys.apiKey, apiKey) });
+    if (keyRecord) return keyRecord.userId;
+  }
+  try {
+    const { userId } = await auth();
+    if (userId) return userId;
+  } catch {
+    // Clerk auth not available
+  }
+  return null;
 }

@@ -3,12 +3,19 @@ import { db } from '@/lib/db';
 import { channels, videos } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { getValidYouTubeClient, fetchChannelAnalytics, fetchRecentVideos } from '@/lib/youtube/api';
+import { getUserIdFromRequest, corsResponse, corsOptions } from '@/lib/api-auth';
 export const dynamic = 'force-dynamic';
-export async function POST() {
+export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get('origin') || '';
+  return corsOptions(origin);
+}
+export async function POST(request: NextRequest) {
+  const userId = await getUserIdFromRequest(request);
+  if (!userId) return corsResponse({ error: 'Unauthorized' }, 401, request.headers.get('origin') || '');
   try {
-    const allChannels = await db.query.channels.findMany();
+    const userChannels = await db.query.channels.findMany({ where: eq(channels.userId, userId) });
     const results = [];
-    for (const channel of allChannels) {
+    for (const channel of userChannels) {
       try {
         const youtube = await getValidYouTubeClient(channel.id);
         const [ytChannelData, ytVideos] = await Promise.all([fetchChannelAnalytics(youtube), fetchRecentVideos(youtube, 20)]);
@@ -21,9 +28,11 @@ export async function POST() {
         results.push({ channelId: channel.id, status: 'success' });
       } catch (error) { results.push({ channelId: channel.id, status: 'error', error: String(error) }); }
     }
-    return NextResponse.json({ synced: results });
-  } catch (error) { return NextResponse.json({ error: 'Sync failed' }, { status: 500 }); }
+    return corsResponse({ synced: results }, 200, request.headers.get('origin') || '');
+  } catch (error) {
+    return corsResponse({ error: 'Sync failed' }, 500, request.headers.get('origin') || '');
+  }
 }
 export async function GET() {
-  return NextResponse.json({ endpoint: '/api/sync', method: 'POST', description: 'Trigger sync for all channels' });
+  return corsResponse({ endpoint: '/api/sync', method: 'POST', description: 'Trigger sync for all channels' }, 200, '');
 }

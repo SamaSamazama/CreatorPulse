@@ -1,5 +1,5 @@
 const API_BASE = 'http://localhost:3000';
-const VERCEL_URL = 'https://my-creator-pulse.vercel.app';
+const VERCEL_URL = 'https://my-project-sooty-tau-51.vercel.app';
 
 function getApiBase() {
   return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'

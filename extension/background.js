@@ -6,7 +6,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
   if (message.action === 'openAuth') {
-    chrome.tabs.create({ url: 'http://localhost:3000/sign-in' });
+    chrome.tabs.create({ url: 'https://my-project-sooty-tau-51.vercel.app/sign-in' });
     sendResponse({ opened: true });
     return true;
   }

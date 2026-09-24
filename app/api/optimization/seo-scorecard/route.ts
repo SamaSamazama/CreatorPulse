@@ -5,6 +5,7 @@ import { videos, users } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { computeSeoScore } from '@/lib/scoring';
 import { generateOpenRouterCompletion } from '@/lib/ai/openrouter';
+import { getUserIdFromRequest, corsResponse, corsOptions } from '@/lib/api-auth';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -13,8 +14,13 @@ function isValidUuid(value: unknown): value is string {
 }
 
 export const dynamic = 'force-dynamic';
+export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get('origin') || '';
+  return corsOptions(origin);
+}
 export async function POST(request: NextRequest) {
-  const { userId } = await auth();
+  const userId = await getUserIdFromRequest(request);
+  if (!userId) return corsResponse({ error: 'Unauthorized' }, 401, request.headers.get('origin') || '');
   const { videoId, title, description, tags } = await request.json();
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   const score = computeSeoScore({ title, description, tags });
@@ -34,11 +40,12 @@ export async function POST(request: NextRequest) {
   if (videoId && isValidUuid(videoId)) {
     await db.update(videos).set({ seoScore: score }).where(eq(videos.id, videoId));
   }
-  return NextResponse.json({ score, suggestions, aiSuggestions });
+  return corsResponse({ score, suggestions, aiSuggestions }, 200, request.headers.get('origin') || '');
 }
-export async function GET() {
-  const { userId } = await auth();
+export async function GET(request: NextRequest) {
+  const userId = await getUserIdFromRequest(request);
+  if (!userId) return corsResponse({ error: 'Unauthorized' }, 401, request.headers.get('origin') || '');
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   const userVideos = await db.query.videos.findMany({ where: eq(videos.channelId, dbUser!.id), orderBy: [desc(videos.publishedAt)], limit: 20 });
-  return NextResponse.json({ videos: userVideos });
+  return corsResponse({ videos: userVideos }, 200, request.headers.get('origin') || '');
 }

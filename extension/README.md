@@ -11,7 +11,7 @@ TubeBuddy/VidIQ-style overlay for YouTube that connects to your CreatorPulse das
 
 ## Setup
 
-1. Open CreatorPulse: https://my-creator-pulse.vercel.app
+1. Open CreatorPulse: https://my-project-sooty-tau-51.vercel.app
 2. Sign in with Clerk
 3. Go to **Settings → API Keys**
 4. Click **Generate Key**
@@ -56,5 +56,5 @@ Both require `X-API-Key` header.
 
 ## Notes
 
-- Make sure the backend is running at `https://my-creator-pulse.vercel.app` or `http://localhost:3000`
+- Make sure the backend is running at `https://my-project-sooty-tau-51.vercel.app` or `http://localhost:3000`
 - API keys are stored in Chrome local storage
