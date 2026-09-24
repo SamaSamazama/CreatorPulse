@@ -160,6 +160,23 @@
       }
     });
 
+    document.getElementById('cp-analyze-thumbnail')?.addEventListener('click', async () => {
+      const title = document.querySelector('#textbox[aria-label="Title"]')?.value || '';
+      const thumbnailUrl = document.querySelector('img#thumbnail-icon, ytcp-video-thumbnail img, yt-thumbnail img, .ytcp-thumbnail img, img.ytcp-thumbnail')?.src || '';
+      if (!thumbnailUrl) {
+        alert('Thumbnail not found');
+        return;
+      }
+      try {
+        const data = await fetchWithAuth('/api/optimization/thumbnail-analyzer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ videoId: null, thumbnailUrl, score: null }) });
+        if (data.analysis) {
+          alert('Thumbnail Score: ' + data.analysis.score + '/100\nSuggestions: ' + (data.analysis.suggestions || []).join('\n'));
+        }
+      } catch (e) {
+        console.error('CreatorPulse analyze thumbnail error:', e);
+      }
+    });
+
     document.getElementById('cp-apply-profile')?.addEventListener('click', async () => {
       const profileId = document.getElementById('cp-upload-profile')?.value;
       if (!profileId) return;

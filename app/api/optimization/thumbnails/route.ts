@@ -6,25 +6,40 @@ import { eq } from 'drizzle-orm';
 import { generateOpenRouterCompletion } from '@/lib/ai/openrouter';
 export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
-  await auth();
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const { prompt } = await request.json();
   try {
-    const imagePrompt = `Describe a highly engaging YouTube thumbnail in vivid visual detail for: ${prompt}`;
-    const description = await generateOpenRouterCompletion(process.env.OPENROUTER_THUMBNAIL_MODEL || process.env.OPENROUTER_COACH_MODEL || "meta-llama/llama-4-maverick:free", imagePrompt, "You are a thumbnail design expert. Return only a concise visual description.");
-    const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
-    if (dbUser) await db.insert(thumbnailGenerations).values({ userId: dbUser.id, prompt, imageUrl: description });
-    return NextResponse.json({ description, prompt });
+    const { userId } = await auth();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { prompt } = await request.json();
+    try {
+      const imagePrompt = `Describe a highly engaging YouTube thumbnail in vivid visual detail for: ${prompt}`;
+      const description = await generateOpenRouterCompletion(process.env.OPENROUTER_THUMBNAIL_MODEL || process.env.OPENROUTER_COACH_MODEL || "meta-llama/llama-4-maverick:free", imagePrompt, "You are a thumbnail design expert. Return only a concise visual description.");
+      const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
+      if (dbUser) {
+        try {
+          await db.insert(thumbnailGenerations).values({ userId: dbUser.id, prompt, imageUrl: description });
+        } catch (error) {
+          console.error('Database thumbnail generation insert error:', error);
+        }
+      }
+      return NextResponse.json({ description, prompt });
+    } catch (error: any) {
+      console.error("Thumbnail generation error:", error);
+      return NextResponse.json({ error: error.message || "Thumbnail generation failed" }, { status: 500 });
+    }
   } catch (error: any) {
-    console.error("Thumbnail generation error:", error);
-    return NextResponse.json({ error: error.message || "Thumbnail generation failed" }, { status: 500 });
+    console.error('Thumbnails route auth error:', error);
+    return NextResponse.json({ error: error.message || 'Authentication failed' }, { status: 401 });
   }
 }
 export async function GET() {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json([]);
-  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
-  if (!dbUser) return NextResponse.json([]);
-  return NextResponse.json(await db.query.thumbnailGenerations.findMany({ where: eq(thumbnailGenerations.userId, dbUser.id), limit: 20 }));
+  try {
+    const { userId } = await auth();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
+    if (!dbUser) return NextResponse.json([]);
+    return NextResponse.json(await db.query.thumbnailGenerations.findMany({ where: eq(thumbnailGenerations.userId, dbUser.id), limit: 20 }));
+  } catch (error: any) {
+    console.error('Thumbnails GET error:', error);
+    return NextResponse.json({ error: error.message || 'Failed to load thumbnails' }, { status: 500 });
+  }
 }

@@ -206,11 +206,11 @@
         videoList.innerHTML = '';
       }
       updateOverlay(channel);
-    } catch (e) {
+    } catch (e: any) {
       console.error('CreatorPulse dashboard error:', e);
       document.getElementById('cp-auth-section').style.display = 'block';
       document.getElementById('cp-dashboard').style.display = 'none';
-      document.querySelector('#cp-auth-section .cp-status').textContent = 'Error loading data';
+      document.querySelector('#cp-auth-section .cp-status').textContent = 'Error: ' + (e?.message || String(e));
     }
   }
 

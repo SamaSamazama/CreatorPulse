@@ -19,33 +19,48 @@ export async function OPTIONS(request: NextRequest) {
   return corsOptions(origin);
 }
 export async function POST(request: NextRequest) {
-  const userId = await getUserIdFromRequest(request);
-  if (!userId) return corsResponse({ error: 'Unauthorized' }, 401, request.headers.get('origin') || '');
-  const { videoId, title, description, tags } = await request.json();
-  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
-  const score = computeSeoScore({ title, description, tags });
-  const suggestions: string[] = [];
-  if (!title || title.length < 40) suggestions.push('Add primary keyword to title and aim for 40-70 characters');
-  if (!description || description.length < 150) suggestions.push('Expand description to 150-300 words and include target keywords');
-  const tagCount = Array.isArray(tags) ? tags.length : 0;
-  if (tagCount < 5) suggestions.push('Add 5-10 relevant tags including broad and long-tail keywords');
-  if (suggestions.length === 0) suggestions.push('Title, description, and tags look solid for this video.');
-  let aiSuggestions = '';
   try {
-    const model = process.env.OPENROUTER_SEO_SCORECARD_MODEL || 'z-ai/glm-5-2';
-    aiSuggestions = await generateOpenRouterCompletion(model, `Title: ${title}. Description: ${description}. Tags: ${JSON.stringify(tags)}. Score: ${score}. Suggest SEO improvements.`, 'You are a YouTube SEO expert.');
-  } catch (error) {
-    console.error('AI SEO scorecard error:', error);
+    const userId = await getUserIdFromRequest(request);
+    if (!userId) return corsResponse({ error: 'Unauthorized' }, 401, request.headers.get('origin') || '');
+    const { videoId, title, description, tags } = await request.json();
+    const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
+    const score = computeSeoScore({ title, description, tags });
+    const suggestions: string[] = [];
+    if (!title || title.length < 40) suggestions.push('Add primary keyword to title and aim for 40-70 characters');
+    if (!description || description.length < 150) suggestions.push('Expand description to 150-300 words and include target keywords');
+    const tagCount = Array.isArray(tags) ? tags.length : 0;
+    if (tagCount < 5) suggestions.push('Add 5-10 relevant tags including broad and long-tail keywords');
+    if (suggestions.length === 0) suggestions.push('Title, description, and tags look solid for this video.');
+    let aiSuggestions = '';
+    try {
+      const model = process.env.OPENROUTER_SEO_SCORECARD_MODEL || 'z-ai/glm-5-2';
+      aiSuggestions = await generateOpenRouterCompletion(model, `Title: ${title}. Description: ${description}. Tags: ${JSON.stringify(tags)}. Score: ${score}. Suggest SEO improvements.`, 'You are a YouTube SEO expert.');
+    } catch (error) {
+      console.error('AI SEO scorecard error:', error);
+    }
+    if (videoId && isValidUuid(videoId)) {
+      try {
+        await db.update(videos).set({ seoScore: score }).where(eq(videos.id, videoId));
+      } catch (error) {
+        console.error('Database video update error:', error);
+      }
+    }
+    return corsResponse({ score, suggestions, aiSuggestions }, 200, request.headers.get('origin') || '');
+  } catch (error: any) {
+    console.error('SEO scorecard route error:', error);
+    return corsResponse({ error: error.message || 'SEO scorecard failed' }, 500, request.headers.get('origin') || '');
   }
-  if (videoId && isValidUuid(videoId)) {
-    await db.update(videos).set({ seoScore: score }).where(eq(videos.id, videoId));
-  }
-  return corsResponse({ score, suggestions, aiSuggestions }, 200, request.headers.get('origin') || '');
 }
 export async function GET(request: NextRequest) {
-  const userId = await getUserIdFromRequest(request);
-  if (!userId) return corsResponse({ error: 'Unauthorized' }, 401, request.headers.get('origin') || '');
-  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
-  const userVideos = await db.query.videos.findMany({ where: eq(videos.channelId, dbUser!.id), orderBy: [desc(videos.publishedAt)], limit: 20 });
-  return corsResponse({ videos: userVideos }, 200, request.headers.get('origin') || '');
+  try {
+    const userId = await getUserIdFromRequest(request);
+    if (!userId) return corsResponse({ error: 'Unauthorized' }, 401, request.headers.get('origin') || '');
+    const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
+    if (!dbUser) return corsResponse({ videos: [] }, 200, request.headers.get('origin') || '');
+    const userVideos = await db.query.videos.findMany({ where: eq(videos.channelId, dbUser.id), orderBy: [desc(videos.publishedAt)], limit: 20 });
+    return corsResponse({ videos: userVideos }, 200, request.headers.get('origin') || '');
+  } catch (error: any) {
+    console.error('SEO scorecard GET error:', error);
+    return corsResponse({ error: error.message || 'Failed to load SEO scorecard' }, 500, request.headers.get('origin') || '');
+  }
 }

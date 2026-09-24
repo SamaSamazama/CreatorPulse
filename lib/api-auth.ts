@@ -42,6 +42,7 @@ const getCorsHeaders = (origin: string) => ({
   'Access-Control-Allow-Headers': 'Content-Type, X-API-Key',
   'Access-Control-Max-Age': '86400',
 });
+export { getCorsHeaders };
 
 export function corsResponse(body: any, status = 200, origin = '') {
   return NextResponse.json(body, {

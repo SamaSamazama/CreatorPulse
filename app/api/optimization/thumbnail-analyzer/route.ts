@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { thumbnailAnalyses, users } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { computeThumbnailScore } from '@/lib/scoring';
 import { generateOpenRouterCompletion } from '@/lib/ai/openrouter';
+import { getUserIdFromRequest, corsResponse, corsOptions } from '@/lib/api-auth';
 export const dynamic = 'force-dynamic';
+export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get('origin') || '';
+  return corsOptions(origin);
+}
 export async function POST(request: NextRequest) {
-  const { userId } = await auth();
+  const userId = await getUserIdFromRequest(request);
+  if (!userId) return corsResponse({ error: 'Unauthorized' }, 401, request.headers.get('origin') || '');
   const { videoId, thumbnailUrl, score } = await request.json();
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   const computedScore = computeThumbnailScore({ thumbnailUrl, score });
@@ -21,11 +26,12 @@ export async function POST(request: NextRequest) {
     console.error('AI thumbnail analyzer error:', error);
   }
   const analysis = await db.insert(thumbnailAnalyses).values({ userId: dbUser!.id, videoId, thumbnailUrl, score: computedScore, readabilityIssues, suggestions: [...suggestions, ...(aiAnalysis ? [aiAnalysis] : [])] }).returning();
-  return NextResponse.json({ analysis: analysis[0] });
+  return corsResponse({ analysis: analysis[0] }, 200, request.headers.get('origin') || '');
 }
-export async function GET() {
-  const { userId } = await auth();
+export async function GET(request: NextRequest) {
+  const userId = await getUserIdFromRequest(request);
+  if (!userId) return corsResponse({ error: 'Unauthorized' }, 401, request.headers.get('origin') || '');
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   const analyses = await db.query.thumbnailAnalyses.findMany({ where: eq(thumbnailAnalyses.userId, dbUser!.id), orderBy: [desc(thumbnailAnalyses.createdAt)], limit: 20 });
-  return NextResponse.json({ analyses });
+  return corsResponse({ analyses }, 200, request.headers.get('origin') || '');
 }
