@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { channels, users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { generateOpenRouterCompletion } from '@/lib/ai/openrouter';
 export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
@@ -11,7 +12,14 @@ export async function GET() {
     const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
     if (!dbUser) return NextResponse.json({ channels: [] });
     const userChannels = await db.query.channels.findMany({ where: eq(channels.userId, dbUser.id) });
-    return NextResponse.json({ channels: userChannels });
+    let aiInsights = '';
+    try {
+      const model = process.env.OPENROUTER_CHANNEL_MODEL || 'z-ai/glm-5-2';
+      aiInsights = await generateOpenRouterCompletion(model, `User has ${userChannels.length} channels. Suggest channel management strategy.`, 'You are a YouTube channel strategist.');
+    } catch (error) {
+      console.error('AI channels error:', error);
+    }
+    return NextResponse.json({ channels: userChannels, aiInsights });
   } catch (error: any) {
     console.error('GET /api/channels error:', error);
     return NextResponse.json({ error: 'Failed to load channels', details: error.message }, { status: 500 });

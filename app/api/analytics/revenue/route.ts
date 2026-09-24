@@ -5,6 +5,7 @@ import { channels, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { getValidAccessToken } from "@/lib/youtube/client";
 import { fetchRevenueData } from "@/lib/youtube/analytics";
+import { generateOpenRouterCompletion } from "@/lib/ai/openrouter";
 export async function GET() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -18,7 +19,14 @@ export async function GET() {
     const token = await getValidAccessToken(userChannel.id);
     const data = await fetchRevenueData(token, userChannel.platformId, fmt(start), fmt(end));
     const parsed = (data.rows || []).map((row: any) => ({ date: row[0], revenue: parseFloat(row[1]), views: parseInt(row[2]), watchTime: parseFloat(row[3]), rpm: parseInt(row[2]) > 0 ? (parseFloat(row[1]) / parseInt(row[2])) * 1000 : 0 }));
-    return NextResponse.json(parsed);
+    let aiInsights = '';
+    try {
+      const model = process.env.OPENROUTER_REVENUE_MODEL || 'z-ai/glm-5-2';
+      aiInsights = await generateOpenRouterCompletion(model, `Revenue data: ${JSON.stringify(parsed)}. Suggest monetization improvements.`, 'You are a YouTube revenue strategist.');
+    } catch (error) {
+      console.error('AI revenue error:', error);
+    }
+    return NextResponse.json({ ...parsed, aiInsights });
   } catch (error: any) {
     return NextResponse.json({ error: "Failed to fetch revenue. Is your channel monetized?" }, { status: 500 });
   }

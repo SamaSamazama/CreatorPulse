@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { apiKeys, users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import crypto from 'crypto';
+import { generateOpenRouterCompletion } from '@/lib/ai/openrouter';
 export const dynamic = 'force-dynamic';
 export async function GET() {
   const { userId } = await auth();
@@ -20,7 +21,14 @@ export async function POST(req: NextRequest) {
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 });
   const newKey = `cp_live_${crypto.randomBytes(24).toString('hex')}`;
-  return NextResponse.json((await db.insert(apiKeys).values({ userId: dbUser.id, apiKey: newKey, name: name || 'Default' }).returning())[0]);
+  let aiSuggestion = '';
+  try {
+    const model = process.env.OPENROUTER_SETTINGS_MODEL || 'z-ai/glm-5-2';
+    aiSuggestion = await generateOpenRouterCompletion(model, `New API key created: ${name}. Suggest security and rotation practices.`, 'You are an API security advisor.');
+  } catch (error) {
+    console.error('AI api-keys error:', error);
+  }
+  return NextResponse.json({ ...(await db.insert(apiKeys).values({ userId: dbUser.id, apiKey: newKey, name: name || 'Default' }).returning())[0], aiSuggestion });
 }
 export async function DELETE(req: NextRequest) {
   const { id } = await req.json();

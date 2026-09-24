@@ -8,6 +8,7 @@ const isPublicRoute = createRouteMatcher([
   '/api/auth/youtube(.*)',
   '/api/public/v1/channel',
   '/api/public/v1/videos',
+  '/api/health',
 ]);
 
 export default clerkMiddleware(async (auth, request) => {

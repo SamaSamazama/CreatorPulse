@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { competitors, users, channels } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { getValidYouTubeClient } from '@/lib/youtube/client';
+import { generateOpenRouterCompletion } from '@/lib/ai/openrouter';
 export const dynamic = 'force-dynamic';
 export async function GET() {
   const { userId } = await auth();
@@ -25,7 +26,14 @@ export async function POST(request: NextRequest) {
     const response = await youtube.channels.list({ part: ['snippet', 'statistics'], ...(isHandle ? { forHandle: channelIdentifier } : { id: channelIdentifier }) });
     const ytChannel = response.data.items?.[0];
     if (!ytChannel) throw new Error('Channel not found');
-    await db.insert(competitors).values({ userId: dbUser.id, platformId: ytChannel.id, title: ytChannel.snippet.title, handle: ytChannel.snippet.customUrl, thumbnailUrl: ytChannel.snippet.thumbnails?.default?.url, subscriberCount: parseInt(ytChannel.statistics.subscriberCount || '0'), viewCount: parseInt(ytChannel.statistics.viewCount || '0') });
-    return NextResponse.json({ success: true });
+    let aiInsights = '';
+    try {
+      const model = process.env.OPENROUTER_CHANNELYTICS_MODEL || 'z-ai/glm-5-2';
+      aiInsights = await generateOpenRouterCompletion(model, `Competitor: ${ytChannel.snippet.title}. Subscribers: ${ytChannel.statistics.subscriberCount}. Views: ${ytChannel.statistics.viewCount}. Suggest competitive advantages.`, 'You are a YouTube competitor analyst.');
+    } catch (error) {
+      console.error('AI competitors error:', error);
+    }
+    await db.insert(competitors).values({ userId: dbUser.id, platformId: ytChannel.id, title: ytChannel.snippet.title, handle: ytChannel.snippet.customUrl, thumbnailUrl: ytChannel.snippet.thumbnails?.default?.url, subscriberCount: parseInt(ytChannel.statistics.subscriberCount || '0'), viewCount: parseInt(ytChannel.statistics.viewCount || '0') }).returning();
+    return NextResponse.json({ success: true, aiInsights });
   } catch (error: any) { return NextResponse.json({ error: error.message }, { status: 500 }); }
 }

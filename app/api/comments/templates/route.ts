@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { commentTemplates, users } from '@/lib/db/schema';
 import { and, eq, desc } from 'drizzle-orm';
+import { generateOpenRouterCompletion } from '@/lib/ai/openrouter';
 export const dynamic = 'force-dynamic';
 export async function GET() {
   const { userId } = await auth();
@@ -16,8 +17,15 @@ export async function POST(request: NextRequest) {
   const { userId } = await auth();
   const { name, content } = await request.json();
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
+  let aiReply = '';
+  try {
+    const model = process.env.OPENROUTER_COMMENTS_MODEL || 'google/gemma-3-26b-a4b';
+    aiReply = await generateOpenRouterCompletion(model, `Comment template name: ${name}. Content: ${content}. Suggest a polished reply.`, 'You are a YouTube comment engagement assistant.');
+  } catch (error) {
+    console.error('AI comments error:', error);
+  }
   const template = await db.insert(commentTemplates).values({ userId: dbUser!.id, name, content }).returning();
-  return NextResponse.json({ template: template[0] });
+  return NextResponse.json({ template: template[0], aiReply });
 }
 export async function PUT(request: NextRequest) {
   const { userId } = await auth();

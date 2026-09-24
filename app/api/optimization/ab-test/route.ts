@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { abTests, users, channels } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getValidYouTubeClient } from "@/lib/youtube/client";
+import { generateOpenRouterCompletion } from "@/lib/ai/openrouter";
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
   const { videoId, variantTitle, action } = await request.json();
@@ -14,9 +15,15 @@ export async function POST(request: NextRequest) {
   if (action === "start") {
     const originalVideo = await youtube.videos.list({ part: ["snippet"], id: [videoId] });
     const origSnippet = originalVideo.data.items?.[0]?.snippet;
-    await youtube.videos.update({ part: ["snippet"], requestBody: { id: videoId, snippet: { ...origSnippet, title: variantTitle } } });
-    await db.insert(abTests).values({ userId: dbUser!.id, videoId, originalTitle: origSnippet!.title, variantTitle, status: "active" });
-    return NextResponse.json({ success: true });
+    let aiVariant = '';
+    try {
+      const model = process.env.OPENROUTER_AB_TESTING_MODEL || 'z-ai/glm-5-2';
+      aiVariant = await generateOpenRouterCompletion(model, `Original title: ${origSnippet!.title}. Suggest a testable variant.`, 'You are a YouTube A/B testing expert.');
+    } catch (error) {
+      console.error('AI A/B test error:', error);
+    }
+    const test = await db.insert(abTests).values({ userId: dbUser!.id, videoId, originalTitle: origSnippet!.title, variantTitle: variantTitle, status: "active", aiVariant }).returning();
+    return NextResponse.json({ success: true, aiVariant });
   }
   if (action === "end") {
     const test = await db.query.abTests.findFirst({ where: and(eq(abTests.videoId, videoId), eq(abTests.status, "active")) });

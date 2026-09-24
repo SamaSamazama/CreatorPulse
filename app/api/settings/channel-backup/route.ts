@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { channelBackups, users, channels, videos } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { generateOpenRouterCompletion } from '@/lib/ai/openrouter';
 export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
@@ -13,7 +14,14 @@ export async function POST(request: NextRequest) {
   const size = channelVideos.length * 2048;
   const backup = await db.insert(channelBackups).values({ userId: dbUser!.id, channelId: channel!.id, size }).returning();
   await db.update(channels).set({ channelBackupAt: new Date() }).where(eq(channels.id, channelId));
-  return NextResponse.json({ backup: backup[0], videoCount: channelVideos.length });
+  let aiSuggestion = '';
+  try {
+    const model = process.env.OPENROUTER_SETTINGS_MODEL || 'z-ai/glm-5-2';
+    aiSuggestion = await generateOpenRouterCompletion(model, `Channel backup created with ${channelVideos.length} videos. Suggest backup cadence and retention strategy.`, 'You are a YouTube channel backup advisor.');
+  } catch (error) {
+    console.error('AI backup error:', error);
+  }
+  return NextResponse.json({ backup: backup[0], videoCount: channelVideos.length, aiSuggestion });
 }
 export async function GET() {
   const { userId } = await auth();

@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { trendAlerts, users, keywordTrends, channels } from '@/lib/db/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { getValidYouTubeClient } from '@/lib/youtube/client';
+import { generateOpenRouterCompletion } from '@/lib/ai/openrouter';
 function computeVelocityFromData(data: Array<{ volume: number }>): number {
   if (!data || data.length < 2) return 0;
   const recent = data[0]?.volume || 0;
@@ -42,7 +43,14 @@ export async function POST(request: NextRequest) {
     console.error('Trend velocity calculation error:', error);
   }
   const alert = await db.insert(trendAlerts).values({ userId: dbUser.id, keyword, niche, velocity }).returning();
-  return NextResponse.json({ alert: alert[0] });
+  let aiInsights = '';
+  try {
+    const model = process.env.OPENROUTER_KEYWORD_TRENDS_MODEL || 'google/gemma-3-26b-a4b';
+    aiInsights = await generateOpenRouterCompletion(model, `Trend alert: ${keyword} in ${niche}. Velocity: ${velocity}%. Suggest content actions.`, 'You are a YouTube trend analyst.');
+  } catch (error) {
+    console.error('AI trend alerts error:', error);
+  }
+  return NextResponse.json({ alert: alert[0], aiInsights });
 }
 export async function DELETE(request: NextRequest) {
   const { userId } = await auth();

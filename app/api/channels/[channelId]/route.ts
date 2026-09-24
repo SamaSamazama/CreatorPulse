@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { channels, users } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
+import { generateOpenRouterCompletion } from '@/lib/ai/openrouter';
 export const dynamic = 'force-dynamic';
 export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ channelId: string }> }) {
   const { channelId } = await params;
@@ -12,8 +13,15 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 });
   const channel = await db.query.channels.findFirst({ where: and(eq(channels.id, channelId), eq(channels.userId, dbUser.id)) });
   if (!channel) return NextResponse.json({ error: 'Channel not found' }, { status: 404 });
+  let aiSuggestion = '';
+  try {
+    const model = process.env.OPENROUTER_CHANNEL_MODEL || 'z-ai/glm-5-2';
+    aiSuggestion = await generateOpenRouterCompletion(model, `Deleting channel ${channel.title}. Suggest backup or migration steps.`, 'You are a YouTube channel management advisor.');
+  } catch (error) {
+    console.error('AI channel delete error:', error);
+  }
   await db.delete(channels).where(eq(channels.id, channel.id));
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true, aiSuggestion });
 }
 export async function PUT(_request: NextRequest, { params }: { params: Promise<{ channelId: string }> }) {
   const { channelId } = await params;
@@ -23,8 +31,16 @@ export async function PUT(_request: NextRequest, { params }: { params: Promise<{
   if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 });
   const channel = await db.query.channels.findFirst({ where: and(eq(channels.id, channelId), eq(channels.userId, dbUser.id)) });
   if (!channel) return NextResponse.json({ error: 'Channel not found' }, { status: 404 });
+  let aiSuggestion = '';
+  try {
+    const model = process.env.OPENROUTER_CHANNEL_MODEL || 'z-ai/glm-5-2';
+    aiSuggestion = await generateOpenRouterCompletion(model, `Reconnecting channel ${channel.title}. Suggest refresh and sync best practices.`, 'You are a YouTube channel connection advisor.');
+  } catch (error) {
+    console.error('AI channel reconnect error:', error);
+  }
   const state = encodeURIComponent(JSON.stringify({ userId: dbUser.id, clerkId: userId, reconnect: channel.id }));
-  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/youtube/callback`;
+  const origin = _request.nextUrl.origin;
+  const redirectUri = `${origin}/api/auth/youtube/callback`;
   const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
   authUrl.searchParams.set('client_id', process.env.YOUTUBE_CLIENT_ID!);
   authUrl.searchParams.set('redirect_uri', redirectUri);

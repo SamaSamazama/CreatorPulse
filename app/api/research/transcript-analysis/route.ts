@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
   const { userId } = await auth();
   const { transcript, competitorChannel } = await request.json();
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
-  const model = process.env.OPENROUTER_COACH_MODEL || 'google/gemini-2.0-flash-exp:free';
+  const model = process.env.OPENROUTER_RESEARCH_MODEL || 'google/gemini-2.0-flash-exp:free';
   const systemInstruction = 'You are a YouTube transcript analyst. Analyze the provided transcript and extract talking points, key segments, hook strategies, and retention techniques. Return structured analysis.';
   const prompt = `Transcript from ${competitorChannel || 'video'}:\n${transcript}\n\nAnalyze this transcript for talking points, structure, and retention tactics. Provide: 1) Top keywords, 2) Summary, 3) Sentiment, 4) Key recommendations.`;
   let analysisText = '';

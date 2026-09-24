@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { milestones, users } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { generateOpenRouterCompletion } from '@/lib/ai/openrouter';
 export const dynamic = 'force-dynamic';
 export async function GET() {
   const { userId } = await auth();
@@ -14,6 +15,13 @@ export async function POST(request: NextRequest) {
   const { userId } = await auth();
   const { channelId, type, value } = await request.json();
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
+  let aiSuggestion = '';
+  try {
+    const model = process.env.OPENROUTER_MILESTONE_TRIGGERS_MODEL || 'z-ai/glm-5-2';
+    aiSuggestion = await generateOpenRouterCompletion(model, `Milestone trigger: ${type} = ${value}. Suggest automation or alert strategy.`, 'You are a YouTube milestone strategist.');
+  } catch (error) {
+    console.error('AI milestone triggers error:', error);
+  }
   const trigger = await db.insert(milestones).values({ userId: dbUser!.id, channelId, type, value }).returning();
-  return NextResponse.json({ trigger: trigger[0] });
+  return NextResponse.json({ trigger: trigger[0], aiSuggestion });
 }

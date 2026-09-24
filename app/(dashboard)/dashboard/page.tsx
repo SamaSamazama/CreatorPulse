@@ -15,13 +15,19 @@ export default function DashboardPage() {
   const router = useRouter();
   const [chartData, setChartData] = useState<{ name: string; views: number }[]>([]);
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
-  const { data, isLoading, refetch, isRefetching } = useDashboard(selectedChannelId || undefined);
+  const [tokenError, setTokenError] = useState<string | null>(null);
+  const { data, isLoading, refetch, isRefetching, error } = useDashboard(selectedChannelId || undefined);
   const syncDashboard = useSyncDashboard();
   useEffect(() => {
+    if (error?.message === 'YOUTUBE_TOKEN_INVALID') {
+      setTokenError('Your YouTube connection has expired. Please reconnect your channel to continue.');
+    } else {
+      setTokenError(null);
+    }
     if (data?.requiresOnboarding) router.push("/onboarding");
     if (data?.channels?.length && !selectedChannelId) setSelectedChannelId(data.channels[0].id);
     if (data?.videos) setChartData(data.videos.slice(0, 10).reverse().map((v: any, i: number) => ({ name: `Video ${i + 1}`, views: v.viewCount })));
-  }, [data, router, selectedChannelId]);
+  }, [data, router, selectedChannelId, error]);
   const currentChannel = data?.channels?.find((c: any) => c.id === selectedChannelId) || data?.channel;
   const handleChannelChange = (channelId: string) => { setSelectedChannelId(channelId); };
   const handleSync = async () => { await syncDashboard(selectedChannelId || undefined); refetch(); };
@@ -48,6 +54,26 @@ export default function DashboardPage() {
   }
   const isPro = false;
   const trialDaysLeft = 3;
+  if (tokenError) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 space-y-6">
+        <div className="text-center space-y-2">
+          <h2 className="text-3xl font-bold tracking-tight">YouTube Connection Expired</h2>
+          <p className="text-muted-foreground max-w-md">{tokenError}</p>
+        </div>
+        <Button size="lg" className="bg-red-600 hover:bg-red-700" onClick={async () => {
+          try {
+            const res = await fetch('/api/channels', { method: 'POST' });
+            const data = await res.json();
+            if (data.url) window.location.href = data.url;
+            else alert(data.error || data.details || 'Failed to reconnect');
+          } catch (e: any) {
+            alert(e.message || 'Failed to reconnect');
+          }
+        }}>Reconnect YouTube</Button>
+      </div>
+    );
+  }
   return (
     <div className="flex flex-col gap-6 p-6 md:p-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
