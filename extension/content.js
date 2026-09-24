@@ -173,24 +173,30 @@
 
   async function loadDashboard() {
     try {
-      const data = await fetchWithAuth('/api/public/v1/channel');
-      const channels = data.channels || [];
+      const channelData = await fetchWithAuth('/api/public/v1/channel');
+      const channels = channelData.channels || [];
       if (!channels.length) {
         document.getElementById('cp-auth-section').style.display = 'block';
         document.getElementById('cp-dashboard').style.display = 'none';
         document.querySelector('#cp-auth-section .cp-status').textContent = 'No channels connected';
         return;
       }
+      const channel = channels[0];
       document.getElementById('cp-auth-section').style.display = 'none';
       document.getElementById('cp-dashboard').style.display = 'block';
-      const channel = channels[0];
       document.getElementById('cp-subs').textContent = (channel.subscriberCount || 0).toLocaleString();
       document.getElementById('cp-views').textContent = (channel.viewCount || 0).toLocaleString();
       document.getElementById('cp-videos').textContent = (channel.videoCount || 0).toLocaleString();
+      let videoData = { videos: [] };
+      try {
+        videoData = await fetchWithAuth('/api/public/v1/videos');
+      } catch (e) {
+        console.error('CreatorPulse videos fetch error:', e);
+      }
       const videoList = document.getElementById('cp-video-list');
-      if (data.videos?.length) {
+      if (videoData.videos?.length) {
         videoList.innerHTML = '<div class="cp-video-header">Recent Videos</div>' +
-          data.videos.slice(0, 5).map(v => `
+          videoData.videos.slice(0, 5).map(v => `
             <div class="cp-video-item">
               <div class="cp-video-title" title="${v.title}">${v.title}</div>
               <div class="cp-video-views">${(v.viewCount || 0).toLocaleString()} views</div>

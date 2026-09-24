@@ -15,11 +15,18 @@ async function getApiKey() {
 async function loadDashboard() {
   const apiKey = await getApiKey();
   if (!apiKey) {
-    document.getElementById('status').textContent = 'No API key set';
-    document.getElementById('connectBtn').textContent = 'Set API Key';
+    document.getElementById('status').textContent = 'Not connected';
+    document.getElementById('status').style.color = '#6b7280';
+    document.getElementById('connectBtn').textContent = 'Connect';
+    document.getElementById('connectBtn').classList.remove('hidden');
+    document.getElementById('disconnectBtn').classList.add('hidden');
     document.getElementById('dashboard').classList.add('hidden');
     return;
   }
+  document.getElementById('status').textContent = 'Connected';
+  document.getElementById('status').style.color = '#16a34a';
+  document.getElementById('connectBtn').classList.add('hidden');
+  document.getElementById('disconnectBtn').classList.remove('hidden');
   try {
     const base = getApiBase();
     const res = await fetch(`${base}/api/public/v1/channel`, {
@@ -52,12 +59,16 @@ document.getElementById('connectBtn').addEventListener('click', async () => {
     const key = prompt('Enter your CreatorPulse API key:');
     if (key) {
       await chrome.storage.local.set({ apiKey: key });
-      document.getElementById('connectBtn').textContent = 'Connect';
       loadDashboard();
     }
   } else {
     loadDashboard();
   }
+});
+
+document.getElementById('disconnectBtn').addEventListener('click', async () => {
+  await chrome.storage.local.remove('apiKey');
+  loadDashboard();
 });
 
 document.getElementById('syncBtn').addEventListener('click', async () => {
