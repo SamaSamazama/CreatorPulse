@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
   await auth();
   const { topic, tone, duration } = await request.json();
   try {
-    const model = process.env.OPENROUTER_SCRIPT_MODEL || "meta-llama/llama-4-maverick:free";
+    const model = process.env.OPENROUTER_SCRIPT_MODEL || "z-ai/glm-5-2";
     const prompt = `Write a YouTube script. Topic: ${topic}. Tone: ${tone}. Duration: ${duration}. Include [VISUAL] and [AUDIO] cues.`;
     const systemInstruction = "You are an expert YouTube scriptwriter. Write engaging scripts with [VISUAL] and [AUDIO] cues.";
     const script = await generateOpenRouterCompletion(model, prompt, systemInstruction);

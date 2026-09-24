@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
   const channel = await db.query.channels.findFirst({ where: eq(channels.id, channelId) });
   if (!channel) return NextResponse.json({ error: 'No channel found' }, { status: 404 });
   const recentVideos = await db.query.videos.findMany({ where: eq(videos.channelId, channel.id), orderBy: [desc(videos.publishedAt)], limit: 5 });
-  const model = process.env.OPENROUTER_IDEAS_MODEL || process.env.OPENROUTER_COACH_MODEL || 'meta-llama/llama-4-maverick:free';
+  const model = process.env.OPENROUTER_IDEAS_MODEL || process.env.OPENROUTER_COACH_MODEL || "z-ai/glm-5-2";
   const systemInstruction = 'You are a YouTube content strategist. Generate 5 specific video ideas based on the channel niche and recent content. Return as JSON array of objects with title, description, estimatedViews, competitionScore (1-100), trendScore (1-100).';
   const prompt = `Channel: ${channel.title}. Niche: ${channel.niche || 'general'}. Recent videos: ${recentVideos.map(v => v.title).join(', ')}. Generate 5 daily video ideas.`;
   const response = await generateOpenRouterCompletion(model, prompt, systemInstruction);
