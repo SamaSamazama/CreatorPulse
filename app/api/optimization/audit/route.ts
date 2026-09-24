@@ -67,9 +67,22 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       console.error('AI audit error:', error);
     }
+    const finalRecommendations = [
+      ...recommendations,
+      ...(aiInsights ? [aiInsights] : []),
+    ];
     let audit;
     try {
-      audit = await db.insert(channelAudits).values({ userId: dbUser.id, channelId: channel.id, overallScore, metrics, recommendations: [...recommendations, ...(aiInsights ? [aiInsights] : []) }).returning();
+      audit = await db
+        .insert(channelAudits)
+        .values({
+          userId: dbUser.id,
+          channelId: channel.id,
+          overallScore,
+          metrics,
+          recommendations: finalRecommendations,
+        })
+        .returning();
     } catch (error) {
       console.error('Database audit insert error:', error);
       return NextResponse.json({ error: 'Failed to save audit results' }, { status: 500 });
