@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
   if (suggestions.length === 0) suggestions.push('Title, description, and tags look solid for this video.');
   let aiSuggestions = '';
   try {
-    const model = process.env.OPENROUTER_SEO_SCORECARD_MODEL || 'z-ai/glm-5-2';
+    const model = process.env.OPENROUTER_SEO_SCORECARD_MODEL || 'z-ai/glm-5.2';
     aiSuggestions = await generateOpenRouterCompletion(model, `Title: ${title}. Description: ${description}. Tags: ${JSON.stringify(tags)}. Score: ${score}. Suggest SEO improvements.`, 'You are a YouTube SEO expert.');
   } catch (error) {
     console.error('AI SEO scorecard error:', error);

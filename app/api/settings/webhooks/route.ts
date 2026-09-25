@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 });
   let aiSuggestion = '';
   try {
-    const model = process.env.OPENROUTER_SETTINGS_MODEL || 'z-ai/glm-5-2';
+    const model = process.env.OPENROUTER_SETTINGS_MODEL || 'z-ai/glm-5.2';
     aiSuggestion = await generateOpenRouterCompletion(model, `Webhook URL: ${url}, events: ${JSON.stringify(events)}. Suggest webhook best practices.`, 'You are a webhook configuration advisor.');
   } catch (error) {
     console.error('AI webhooks error:', error);

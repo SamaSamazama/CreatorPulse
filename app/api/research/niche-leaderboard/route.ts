@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { nicheLeaderboard, users, channels } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { generateOpenRouterCompletion } from '@/lib/ai/openrouter';
+import { resolveUserChannel } from '@/lib/db/resolve-channel';
 function computeNicheScore(channel: { subscriberCount?: number | null; viewCount?: number | null; videoCount?: number | null }) {
   const subscriberCount = Number(channel.subscriberCount || 0);
   const viewCount = Number(channel.viewCount || 0);
@@ -23,18 +24,20 @@ export async function GET() {
 }
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
-  const { channelId, niche } = await request.json();
-  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
-  const channel = await db.query.channels.findFirst({ where: eq(channels.id, channelId) });
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const { channelId, niche } = await request.json().catch(() => ({}));
+  const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId) });
+  if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+  const channel = await resolveUserChannel(dbUser.id, channelId);
   if (!channel) return NextResponse.json({ error: 'Channel not found' }, { status: 404 });
   const score = computeNicheScore(channel);
   const existingCount = await db.query.nicheLeaderboard.findMany({ where: eq(nicheLeaderboard.niche, niche) });
   const sortedEntries = [...existingCount, { score }].sort((a, b) => b.score - a.score);
   const rank = sortedEntries.findIndex(entry => entry.score === score) + 1;
-  const entry = await db.insert(nicheLeaderboard).values({ userId: dbUser!.id, channelId, niche, rank, score }).returning();
+  const entry = await db.insert(nicheLeaderboard).values({ userId: dbUser.id, channelId: channel.id, niche, rank, score }).returning();
   let aiInsights = '';
   try {
-    const model = process.env.OPENROUTER_LEADERBOARD_MODEL || 'z-ai/glm-5-2';
+    const model = process.env.OPENROUTER_LEADERBOARD_MODEL || 'z-ai/glm-5.2';
     aiInsights = await generateOpenRouterCompletion(model, `Niche: ${niche}. Rank: ${rank}. Score: ${score}. Suggest how to climb the leaderboard.`, 'You are a YouTube niche strategist.');
   } catch (error) {
     console.error('AI leaderboard error:', error);

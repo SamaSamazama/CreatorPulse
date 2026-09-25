@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
   const youtube = await getValidYouTubeClient(userChannel!.id);
   let aiSuggestion = '';
   try {
-    const model = process.env.OPENROUTER_SCHEDULED_MODEL || 'z-ai/glm-5-2';
+    const model = process.env.OPENROUTER_SCHEDULED_MODEL || 'z-ai/glm-5.2';
     aiSuggestion = await generateOpenRouterCompletion(model, `Executing scheduled update for video ${update.videoId}. Title: ${update.title}. Suggest post-update actions.`, 'You are a YouTube scheduling assistant.');
   } catch (error) {
     console.error('AI scheduled execute error:', error);

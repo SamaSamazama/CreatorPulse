@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   let aiSuggestion = '';
   try {
-    const model = process.env.OPENROUTER_PLAYLISTS_MODEL || 'google/gemma-3-26b-a4b';
+    const model = process.env.OPENROUTER_PLAYLISTS_MODEL || 'google/gemma-4-26b-a4b-it';
     aiSuggestion = await generateOpenRouterCompletion(model, `Playlist action: ${action} for playlist ${playlistId}, video ${videoId}. Suggest playlist organization strategy.`, 'You are a YouTube playlist strategist.');
   } catch (error) {
     console.error('AI playlist error:', error);

@@ -24,7 +24,7 @@ export async function POST() {
   const sorted = scored.sort((a, b) => b.viralityScore - a.viralityScore);
   let aiInterpretation = '';
   try {
-    const model = process.env.OPENROUTER_OUTLIERS_MODEL || 'z-ai/glm-5-2';
+    const model = process.env.OPENROUTER_OUTLIERS_MODEL || 'z-ai/glm-5.2';
     aiInterpretation = await generateOpenRouterCompletion(model, `Outlier videos: ${JSON.stringify(sorted.slice(0, 5))}. Interpret what makes them successful.`, 'You are a YouTube outlier analyst.');
   } catch (error) {
     console.error('AI outlier error:', error);

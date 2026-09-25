@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   let aiRecommendation = '';
   try {
-    const model = process.env.OPENROUTER_END_SCREENS_MODEL || 'google/gemma-3-26b-a4b';
+    const model = process.env.OPENROUTER_END_SCREENS_MODEL || 'google/gemma-4-26b-a4b-it';
     aiRecommendation = await generateOpenRouterCompletion(model, `End screen elements: ${JSON.stringify(elements)}. Suggest optimal layout and content.`, 'You are a YouTube end screen strategist.');
   } catch (error) {
     console.error('AI end screens error:', error);

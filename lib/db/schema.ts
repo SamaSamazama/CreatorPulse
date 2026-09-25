@@ -131,7 +131,7 @@ export const channelAudits = pgTable('channel_audits', {
   channelId: uuid('channel_id').references(() => channels.id, { onDelete: 'cascade' }).notNull(),
   overallScore: integer('overall_score').notNull(),
   metrics: jsonb('metrics').$type<Record<string, number>>(),
-  recommendations: jsonb('recommendations').$type<string[]>(),
+  recommendations: text('recommendations').array(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -275,8 +275,8 @@ export const thumbnailAnalyses = pgTable('thumbnail_analyses', {
   videoId: varchar('video_id', { length: 255 }),
   thumbnailUrl: text('thumbnail_url').notNull(),
   score: integer('score'),
-  readabilityIssues: jsonb('readability_issues').$type<string[]>(),
-  suggestions: jsonb('suggestions').$type<string[]>(),
+  readabilityIssues: text('readability_issues').array(),
+  suggestions: text('suggestions').array(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -294,7 +294,7 @@ export const demonetizationAudits = pgTable('demonetization_audits', {
   userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   videoId: varchar('video_id', { length: 255 }).notNull(),
   riskLevel: varchar('risk_level', { length: 50 }),
-  flags: jsonb('flags').$type<string[]>(),
+  flags: text('flags').array(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

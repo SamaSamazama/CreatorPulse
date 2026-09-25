@@ -27,7 +27,7 @@ export async function POST() {
   const trend = slope > 50 ? "growing" : slope < -50 ? "declining" : "stable";
   let aiInterpretation = '';
   try {
-    const model = process.env.OPENROUTER_OUTLIERS_MODEL || 'z-ai/glm-5-2';
+    const model = process.env.OPENROUTER_OUTLIERS_MODEL || 'z-ai/glm-5.2';
     aiInterpretation = await generateOpenRouterCompletion(model, `Forecast trend: ${trend}. Forecasted views: ${JSON.stringify(forecastedViews.slice(0, 7))}. Interpret and suggest actions.`, 'You are a YouTube forecast analyst.');
   } catch (error) {
     console.error('AI forecast error:', error);

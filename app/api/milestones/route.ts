@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
   const milestone = await db.insert(milestones).values({ userId: dbUser!.id, channelId, type, value }).returning();
   let aiSuggestion = '';
   try {
-    const model = process.env.OPENROUTER_MILESTONES_MODEL || 'z-ai/glm-5-2';
+    const model = process.env.OPENROUTER_MILESTONES_MODEL || 'z-ai/glm-5.2';
     aiSuggestion = await generateOpenRouterCompletion(model, `Milestone: ${type} = ${value}. Suggest next milestone target and actions.`, 'You are a YouTube growth strategist.');
   } catch (error) {
     console.error('AI milestones error:', error);

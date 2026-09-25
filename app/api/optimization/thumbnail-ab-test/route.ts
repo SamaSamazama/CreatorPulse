@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const originalThumbnail = thumbnails?.maxres?.url || thumbnails?.high?.url || thumbnails?.default?.url || '';
     let aiComparison = '';
     try {
-      const model = process.env.OPENROUTER_THUMBNAIL_AB_MODEL || 'google/gemma-3-26b-a4b';
+      const model = process.env.OPENROUTER_THUMBNAIL_AB_MODEL || 'google/gemma-4-26b-a4b-it';
       aiComparison = await generateOpenRouterCompletion(model, `Original: ${originalThumbnail}. Variant: ${variantThumbnail}. Compare click appeal.`, 'You are a YouTube thumbnail A/B testing expert.');
     } catch (error) {
       console.error('AI thumbnail A/B error:', error);

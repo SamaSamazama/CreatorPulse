@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
   const youtube = await getValidYouTubeClient(userChannel!.id);
   let aiSuggestion = '';
   try {
-    const model = process.env.OPENROUTER_SUNSET_MODEL || 'z-ai/glm-5-2';
+    const model = process.env.OPENROUTER_SUNSET_MODEL || 'z-ai/glm-5.2';
     aiSuggestion = await generateOpenRouterCompletion(model, `Sunsetting video ${sunset.videoId}. Suggest repurposing or cleanup actions.`, 'You are a YouTube content lifecycle assistant.');
   } catch (error) {
     console.error('AI sunset execute error:', error);

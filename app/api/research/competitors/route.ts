@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     if (!ytChannel) throw new Error('Channel not found');
     let aiInsights = '';
     try {
-      const model = process.env.OPENROUTER_CHANNELYTICS_MODEL || 'z-ai/glm-5-2';
+      const model = process.env.OPENROUTER_CHANNELYTICS_MODEL || 'z-ai/glm-5.2';
       aiInsights = await generateOpenRouterCompletion(model, `Competitor: ${ytChannel.snippet.title}. Subscribers: ${ytChannel.statistics.subscriberCount}. Views: ${ytChannel.statistics.viewCount}. Suggest competitive advantages.`, 'You are a YouTube competitor analyst.');
     } catch (error) {
       console.error('AI competitors error:', error);

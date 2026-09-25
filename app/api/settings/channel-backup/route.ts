@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
   await db.update(channels).set({ channelBackupAt: new Date() }).where(eq(channels.id, channelId));
   let aiSuggestion = '';
   try {
-    const model = process.env.OPENROUTER_SETTINGS_MODEL || 'z-ai/glm-5-2';
+    const model = process.env.OPENROUTER_SETTINGS_MODEL || 'z-ai/glm-5.2';
     aiSuggestion = await generateOpenRouterCompletion(model, `Channel backup created with ${channelVideos.length} videos. Suggest backup cadence and retention strategy.`, 'You are a YouTube channel backup advisor.');
   } catch (error) {
     console.error('AI backup error:', error);

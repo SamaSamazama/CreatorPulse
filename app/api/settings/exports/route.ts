@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   let aiSuggestion = '';
   try {
-    const model = process.env.OPENROUTER_SETTINGS_MODEL || 'z-ai/glm-5-2';
+    const model = process.env.OPENROUTER_SETTINGS_MODEL || 'z-ai/glm-5.2';
     aiSuggestion = await generateOpenRouterCompletion(model, `Export type: ${type}, format: ${format}. Suggest useful export configurations.`, 'You are a YouTube data export advisor.');
   } catch (error) {
     console.error('AI exports error:', error);

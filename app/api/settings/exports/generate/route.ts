@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
   const exportRecord = (await db.insert(exports).values({ userId: dbUser!.id, type, format, url }).returning()) as any[];
   let aiSuggestion = '';
   try {
-    const model = process.env.OPENROUTER_SETTINGS_MODEL || 'z-ai/glm-5-2';
+    const model = process.env.OPENROUTER_SETTINGS_MODEL || 'z-ai/glm-5.2';
     aiSuggestion = await generateOpenRouterCompletion(model, `Generated ${format} export with ${userVideos.length} videos. Suggest analysis or next steps.`, 'You are a YouTube analytics assistant.');
   } catch (error) {
     console.error('AI export generate error:', error);

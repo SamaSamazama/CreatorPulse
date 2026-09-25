@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
   const trend = await db.insert(keywordTrends).values({ userId: dbUser!.id, query, data }).returning();
   let aiInsights = '';
   try {
-    const model = process.env.OPENROUTER_KEYWORD_TRENDS_MODEL || 'google/gemma-3-26b-a4b';
+    const model = process.env.OPENROUTER_KEYWORD_TRENDS_MODEL || 'google/gemma-4-26b-a4b-it';
     aiInsights = await generateOpenRouterCompletion(model, `Keyword trend data: ${JSON.stringify(data)}. Suggest content opportunities.`, 'You are a YouTube trend strategist.');
   } catch (error) {
     console.error('AI keyword trends error:', error);

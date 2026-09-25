@@ -15,7 +15,7 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   if (!channel) return NextResponse.json({ error: 'Channel not found' }, { status: 404 });
   let aiSuggestion = '';
   try {
-    const model = process.env.OPENROUTER_CHANNEL_MODEL || 'z-ai/glm-5-2';
+    const model = process.env.OPENROUTER_CHANNEL_MODEL || 'z-ai/glm-5.2';
     aiSuggestion = await generateOpenRouterCompletion(model, `Deleting channel ${channel.title}. Suggest backup or migration steps.`, 'You are a YouTube channel management advisor.');
   } catch (error) {
     console.error('AI channel delete error:', error);
@@ -33,14 +33,14 @@ export async function PUT(_request: NextRequest, { params }: { params: Promise<{
   if (!channel) return NextResponse.json({ error: 'Channel not found' }, { status: 404 });
   let aiSuggestion = '';
   try {
-    const model = process.env.OPENROUTER_CHANNEL_MODEL || 'z-ai/glm-5-2';
+    const model = process.env.OPENROUTER_CHANNEL_MODEL || 'z-ai/glm-5.2';
     aiSuggestion = await generateOpenRouterCompletion(model, `Reconnecting channel ${channel.title}. Suggest refresh and sync best practices.`, 'You are a YouTube channel connection advisor.');
   } catch (error) {
     console.error('AI channel reconnect error:', error);
   }
   const state = encodeURIComponent(JSON.stringify({ userId: dbUser.id, clerkId: userId, reconnect: channel.id }));
   const origin = _request.nextUrl.origin;
-  const redirectUri = `${origin}/api/auth/youtube/callback`;
+  const redirectUri = process.env.YOUTUBE_REDIRECT_URI ?? `${origin}/api/auth/youtube/callback`;
   const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
   authUrl.searchParams.set('client_id', process.env.YOUTUBE_CLIENT_ID!);
   authUrl.searchParams.set('redirect_uri', redirectUri);

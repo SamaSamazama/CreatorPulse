@@ -21,7 +21,7 @@ export async function GET() {
     const parsed = (data.rows || []).map((row: any) => ({ date: row[0], revenue: parseFloat(row[1]), views: parseInt(row[2]), watchTime: parseFloat(row[3]), rpm: parseInt(row[2]) > 0 ? (parseFloat(row[1]) / parseInt(row[2])) * 1000 : 0 }));
     let aiInsights = '';
     try {
-      const model = process.env.OPENROUTER_REVENUE_MODEL || 'z-ai/glm-5-2';
+      const model = process.env.OPENROUTER_REVENUE_MODEL || 'z-ai/glm-5.2';
       aiInsights = await generateOpenRouterCompletion(model, `Revenue data: ${JSON.stringify(parsed)}. Suggest monetization improvements.`, 'You are a YouTube revenue strategist.');
     } catch (error) {
       console.error('AI revenue error:', error);

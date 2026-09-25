@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
   const alert = await db.insert(trendAlerts).values({ userId: dbUser.id, keyword, niche, velocity }).returning();
   let aiInsights = '';
   try {
-    const model = process.env.OPENROUTER_KEYWORD_TRENDS_MODEL || 'google/gemma-3-26b-a4b';
+    const model = process.env.OPENROUTER_KEYWORD_TRENDS_MODEL || 'google/gemma-4-26b-a4b-it';
     aiInsights = await generateOpenRouterCompletion(model, `Trend alert: ${keyword} in ${niche}. Velocity: ${velocity}%. Suggest content actions.`, 'You are a YouTube trend analyst.');
   } catch (error) {
     console.error('AI trend alerts error:', error);

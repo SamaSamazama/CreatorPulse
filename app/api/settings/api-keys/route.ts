@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   const newKey = `cp_live_${crypto.randomBytes(24).toString('hex')}`;
   let aiSuggestion = '';
   try {
-    const model = process.env.OPENROUTER_SETTINGS_MODEL || 'z-ai/glm-5-2';
+    const model = process.env.OPENROUTER_SETTINGS_MODEL || 'z-ai/glm-5.2';
     aiSuggestion = await generateOpenRouterCompletion(model, `New API key created: ${name}. Suggest security and rotation practices.`, 'You are an API security advisor.');
   } catch (error) {
     console.error('AI api-keys error:', error);

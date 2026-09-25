@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
   bestTime.setHours(hour, 0, 0, 0);
   let aiSuggestion = '';
   try {
-    const model = process.env.OPENROUTER_CALENDAR_MODEL || 'z-ai/glm-5-2';
+    const model = process.env.OPENROUTER_CALENDAR_MODEL || 'z-ai/glm-5.2';
     aiSuggestion = await generateOpenRouterCompletion(model, `Channel has ${channel.subscriberCount} subscribers. Best computed posting time: ${bestTime.toISOString()}. Suggest optimal content type and cadence.`, 'You are a YouTube publishing strategist.');
   } catch (error) {
     console.error('AI best time error:', error);

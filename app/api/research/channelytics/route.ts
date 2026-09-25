@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
   const entry = await db.insert(channelytics).values({ userId: dbUser!.id, competitorId: competitorId || '', competitorName: competitorName || competitor?.title || 'Unknown', data: { metrics, comparison } }).returning();
   let aiInsights = '';
   try {
-    const model = process.env.OPENROUTER_CHANNELYTICS_MODEL || 'z-ai/glm-5-2';
+    const model = process.env.OPENROUTER_CHANNELYTICS_MODEL || 'z-ai/glm-5.2';
     aiInsights = await generateOpenRouterCompletion(model, `Comparison: ${JSON.stringify(comparison)}. Provide competitive strategy advice.`, 'You are a YouTube competitive analyst.');
   } catch (error) {
     console.error('AI channelytics error:', error);

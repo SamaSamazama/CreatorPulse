@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   let aiSuggestions = '';
   try {
-    const model = process.env.OPENROUTER_CARDS_MODEL || 'google/gemma-3-26b-a4b';
+    const model = process.env.OPENROUTER_CARDS_MODEL || 'google/gemma-4-26b-a4b-it';
     aiSuggestions = await generateOpenRouterCompletion(model, `Info card elements: ${JSON.stringify(elements)}. Suggest optimal placement and content.`, 'You are a YouTube info card strategist.');
   } catch (error) {
     console.error('AI cards error:', error);

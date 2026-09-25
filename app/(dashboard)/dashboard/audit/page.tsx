@@ -10,12 +10,20 @@ export default function AuditPage() {
   const router = useRouter();
   const [audit, setAudit] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const runAudit = async () => {
     setLoading(true);
-    const res = await fetch('/api/optimization/audit', { method: 'POST' });
-    const data = await res.json();
-    setAudit(data.audit);
-    setLoading(false);
+    setError(null);
+    try {
+      const res = await fetch('/api/optimization/audit', { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Audit failed (${res.status})`);
+      setAudit(data.audit);
+    } catch (err: any) {
+      setError(err.message || 'Audit failed');
+    } finally {
+      setLoading(false);
+    }
   };
   return (
     <div className="p-6 md:p-8 space-y-6">
@@ -29,6 +37,9 @@ export default function AuditPage() {
           Run Audit
         </Button>
       </div>
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>
+      )}
       {audit && (
         <div className="space-y-6">
           <Card>

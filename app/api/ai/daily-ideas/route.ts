@@ -4,30 +4,28 @@ import { db } from '@/lib/db';
 import { dailyIdeas, users, channels, videos } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { generateOpenRouterCompletion } from '@/lib/ai/openrouter';
-
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function isValidUuid(value: unknown): value is string {
-  return typeof value === 'string' && UUID_REGEX.test(value);
-}
+import { resolveUserChannel } from '@/lib/db/resolve-channel';
 
 export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const { channelId } = await request.json();
+  const { channelId } = await request.json().catch(() => ({}));
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 });
-  if (!isValidUuid(channelId)) {
-    return NextResponse.json({ error: 'Invalid channel ID. Please connect a channel first.' }, { status: 400 });
-  }
-  const channel = await db.query.channels.findFirst({ where: eq(channels.id, channelId) });
-  if (!channel) return NextResponse.json({ error: 'No channel found' }, { status: 404 });
+  const channel = await resolveUserChannel(dbUser.id, channelId);
+  if (!channel) return NextResponse.json({ error: 'No channel found. Please connect a channel first.' }, { status: 404 });
   const recentVideos = await db.query.videos.findMany({ where: eq(videos.channelId, channel.id), orderBy: [desc(videos.publishedAt)], limit: 5 });
-  const model = process.env.OPENROUTER_IDEAS_MODEL || process.env.OPENROUTER_COACH_MODEL || 'meta-llama/llama-4-maverick:free';
+  const model = process.env.OPENROUTER_IDEAS_MODEL || process.env.OPENROUTER_COACH_MODEL || 'meta-llama/llama-4-maverick';
   const systemInstruction = 'You are a YouTube content strategist. Generate 5 specific video ideas based on the channel niche and recent content. Return as JSON array of objects with title, description, estimatedViews, competitionScore (1-100), trendScore (1-100).';
   const prompt = `Channel: ${channel.title}. Niche: ${channel.niche || 'general'}. Recent videos: ${recentVideos.map(v => v.title).join(', ')}. Generate 5 daily video ideas.`;
-  const response = await generateOpenRouterCompletion(model, prompt, systemInstruction);
+  let response: string;
+  try {
+    response = await generateOpenRouterCompletion(model, prompt, systemInstruction);
+  } catch (error) {
+    console.error('AI daily ideas error:', error);
+    return NextResponse.json({ error: 'AI service unavailable. Check OPENROUTER_API_KEY.' }, { status: 502 });
+  }
   let ideas: any[] = [];
   try {
     const jsonMatch = response.match(/\[[\s\S]*\]/);

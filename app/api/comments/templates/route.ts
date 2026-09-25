@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   let aiReply = '';
   try {
-    const model = process.env.OPENROUTER_COMMENTS_MODEL || 'google/gemma-3-26b-a4b';
+    const model = process.env.OPENROUTER_COMMENTS_MODEL || 'google/gemma-4-26b-a4b-it';
     aiReply = await generateOpenRouterCompletion(model, `Comment template name: ${name}. Content: ${content}. Suggest a polished reply.`, 'You are a YouTube comment engagement assistant.');
   } catch (error) {
     console.error('AI comments error:', error);

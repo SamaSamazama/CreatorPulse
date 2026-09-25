@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
   const reasoning = `This title/description combination has a ${score}/100 estimated CTR potential based on length and structure heuristics.`;
   let aiSuggestions = '';
   try {
-    const model = process.env.OPENROUTER_CLICK_MAGNET_MODEL || 'google/gemma-3-26b-a4b';
+    const model = process.env.OPENROUTER_CLICK_MAGNET_MODEL || 'google/gemma-4-26b-a4b-it';
     aiSuggestions = await generateOpenRouterCompletion(model, `Title: ${title}. Description: ${description}. Score: ${score}. Suggest 3 CTR-boosting rewrites.`, 'You are a YouTube click magnet expert.');
   } catch (error) {
     console.error('AI click magnet error:', error);

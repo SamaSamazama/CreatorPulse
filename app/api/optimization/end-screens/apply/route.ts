@@ -15,7 +15,7 @@ export async function PUT(request: NextRequest) {
   const existing = await db.query.endScreens.findFirst({ where: and(eq(endScreens.videoId, videoId), eq(endScreens.userId, dbUser!.id)) });
   let aiSuggestion = '';
   try {
-    const model = process.env.OPENROUTER_END_SCREENS_MODEL || 'google/gemma-3-26b-a4b';
+    const model = process.env.OPENROUTER_END_SCREENS_MODEL || 'google/gemma-4-26b-a4b-it';
     aiSuggestion = await generateOpenRouterCompletion(model, `Applying end screen for video ${videoId}. Elements: ${JSON.stringify(elements)}. Suggest optimization tips.`, 'You are a YouTube end screen strategist.');
   } catch (error) {
     console.error('AI end screen apply error:', error);

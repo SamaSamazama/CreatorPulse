@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   let aiSuggestion = '';
   try {
-    const model = process.env.OPENROUTER_SCHEDULED_MODEL || 'z-ai/glm-5-2';
+    const model = process.env.OPENROUTER_SCHEDULED_MODEL || 'z-ai/glm-5.2';
     aiSuggestion = await generateOpenRouterCompletion(model, `Scheduled update for video ${videoId} at ${scheduledAt}. Title: ${title}. Suggest optimal timing and content.`, 'You are a YouTube scheduling assistant.');
   } catch (error) {
     console.error('AI scheduled error:', error);

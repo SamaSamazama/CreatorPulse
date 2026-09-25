@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
   const { curve, avgRetention, dropOffPoints, recommendations } = computeRetentionCurve(viewCount, likeCount, commentCount);
   let aiInsights = '';
   try {
-    const model = process.env.OPENROUTER_RETENTION_MODEL || 'z-ai/glm-5-2';
+    const model = process.env.OPENROUTER_RETENTION_MODEL || 'z-ai/glm-5.2';
     aiInsights = await generateOpenRouterCompletion(model, `Average retention: ${avgRetention}%. Drop-offs: ${JSON.stringify(dropOffPoints)}. Provide 3 retention improvement tips.`, 'You are a YouTube audience retention expert.');
   } catch (error) {
     console.error('AI retention error:', error);

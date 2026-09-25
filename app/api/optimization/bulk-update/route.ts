@@ -13,7 +13,7 @@ export async function PUT(request: NextRequest) {
   const youtube = await getValidYouTubeClient(userChannel!.id);
   let aiSuggestion = '';
   try {
-    const model = process.env.OPENROUTER_BULK_EDITOR_MODEL || 'no-args/laguna-s-2.1';
+    const model = process.env.OPENROUTER_BULK_EDITOR_MODEL || 'poolside/laguna-s-2.1';
     aiSuggestion = await generateOpenRouterCompletion(model, `Bulk updating ${videoIds.length} videos with tags: ${appendTags}, description append: ${appendDescription}. Suggest best practices.`, 'You are a YouTube bulk editor assistant.');
   } catch (error) {
     console.error('AI bulk update error:', error);

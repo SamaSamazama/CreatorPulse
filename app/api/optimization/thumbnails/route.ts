@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
   const { prompt } = await request.json();
   try {
     const imagePrompt = `Describe a highly engaging YouTube thumbnail in vivid visual detail for: ${prompt}`;
-    const description = await generateOpenRouterCompletion(process.env.OPENROUTER_THUMBNAIL_MODEL || process.env.OPENROUTER_COACH_MODEL || "meta-llama/llama-4-maverick:free", imagePrompt, "You are a thumbnail design expert. Return only a concise visual description.");
+    const description = await generateOpenRouterCompletion(process.env.OPENROUTER_THUMBNAIL_MODEL || process.env.OPENROUTER_COACH_MODEL || "meta-llama/llama-4-maverick", imagePrompt, "You are a thumbnail design expert. Return only a concise visual description.");
     const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
     if (dbUser) await db.insert(thumbnailGenerations).values({ userId: dbUser.id, prompt, imageUrl: description });
     return NextResponse.json({ description, prompt });

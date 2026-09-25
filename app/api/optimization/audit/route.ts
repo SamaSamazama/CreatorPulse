@@ -16,7 +16,9 @@ function isValidUuid(value: unknown): value is string {
 export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
-  const { channelId } = await request.json();
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  // Body is optional: the audit page POSTs without one to audit the user's first channel.
+  const { channelId } = await request.json().catch(() => ({}));
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 });
   if (channelId && !isValidUuid(channelId)) {
@@ -54,7 +56,7 @@ export async function POST(request: NextRequest) {
   const { overallScore, metrics, recommendations } = computeAuditMetrics(metricsPayload);
   let aiInsights = '';
   try {
-    const model = process.env.OPENROUTER_AUDIT_MODEL || 'z-ai/glm-5-2';
+    const model = process.env.OPENROUTER_AUDIT_MODEL || 'z-ai/glm-5.2';
     aiInsights = await generateOpenRouterCompletion(model, `Channel audit score: ${overallScore}. Metrics: ${JSON.stringify(metrics)}. Provide 3 prioritized improvement actions.`, 'You are a YouTube channel auditor.');
   } catch (error) {
     console.error('AI audit error:', error);

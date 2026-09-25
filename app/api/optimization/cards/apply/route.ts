@@ -12,7 +12,7 @@ export async function PUT(request: NextRequest) {
   const existing = await db.query.cards.findFirst({ where: and(eq(cards.videoId, videoId), eq(cards.userId, dbUser!.id)) });
   let aiSuggestion = '';
   try {
-    const model = process.env.OPENROUTER_CARDS_MODEL || 'google/gemma-3-26b-a4b';
+    const model = process.env.OPENROUTER_CARDS_MODEL || 'google/gemma-4-26b-a4b-it';
     aiSuggestion = await generateOpenRouterCompletion(model, `Applying info card for video ${videoId}. Elements: ${JSON.stringify(elements)}. Suggest optimization tips.`, 'You are a YouTube info card strategist.');
   } catch (error) {
     console.error('AI card apply error:', error);

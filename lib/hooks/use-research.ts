@@ -16,7 +16,9 @@ export function useKeywordResearch() {
   return useMutation({
     mutationFn: async (query: string) => {
       const res = await fetch('/api/research/keywords', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query }) });
-      if (!res.ok) throw new Error('Failed'); return res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Failed to analyze keywords');
+      return data;
     },
   });
 }

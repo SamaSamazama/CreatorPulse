@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   let aiSuggestion = '';
   try {
-    const model = process.env.OPENROUTER_UPLOAD_PROFILES_MODEL || 'z-ai/glm-5-2';
+    const model = process.env.OPENROUTER_UPLOAD_PROFILES_MODEL || 'z-ai/glm-5.2';
     aiSuggestion = await generateOpenRouterCompletion(model, `Upload profile: ${name}. Title: ${title}. Category: ${category}. Suggest metadata improvements.`, 'You are a YouTube upload strategist.');
   } catch (error) {
     console.error('AI upload profile error:', error);

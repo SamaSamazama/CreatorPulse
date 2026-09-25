@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
   let aiSuggestion = '';
   try {
-    const model = process.env.OPENROUTER_SUNSET_MODEL || 'z-ai/glm-5-2';
+    const model = process.env.OPENROUTER_SUNSET_MODEL || 'z-ai/glm-5.2';
     aiSuggestion = await generateOpenRouterCompletion(model, `Video ${videoId} sunset reason: ${reason}. Suggest cleanup or repurposing actions.`, 'You are a YouTube content lifecycle strategist.');
   } catch (error) {
     console.error('AI sunset error:', error);

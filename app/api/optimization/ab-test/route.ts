@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     const origSnippet = originalVideo.data.items?.[0]?.snippet;
     let aiVariant = '';
     try {
-      const model = process.env.OPENROUTER_AB_TESTING_MODEL || 'z-ai/glm-5-2';
+      const model = process.env.OPENROUTER_AB_TESTING_MODEL || 'z-ai/glm-5.2';
       aiVariant = await generateOpenRouterCompletion(model, `Original title: ${origSnippet!.title}. Suggest a testable variant.`, 'You are a YouTube A/B testing expert.');
     } catch (error) {
       console.error('AI A/B test error:', error);

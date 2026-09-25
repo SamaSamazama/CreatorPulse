@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
   const suggestions = computedScore < 80 ? ['Add text overlay', 'Increase contrast', 'Use brighter colors'] : [];
   let aiAnalysis = '';
   try {
-    const model = process.env.OPENROUTER_THUMBNAIL_ANALYZER_MODEL || 'google/gemma-3-26b-a4b';
+    const model = process.env.OPENROUTER_THUMBNAIL_ANALYZER_MODEL || 'google/gemma-4-26b-a4b-it';
     aiAnalysis = await generateOpenRouterCompletion(model, `Thumbnail URL: ${thumbnailUrl}. Score: ${computedScore}. Analyze visual appeal and suggest improvements.`, 'You are a YouTube thumbnail expert.');
   } catch (error) {
     console.error('AI thumbnail analyzer error:', error);

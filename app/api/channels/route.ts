@@ -14,7 +14,7 @@ export async function GET() {
     const userChannels = await db.query.channels.findMany({ where: eq(channels.userId, dbUser.id) });
     let aiInsights = '';
     try {
-      const model = process.env.OPENROUTER_CHANNEL_MODEL || 'z-ai/glm-5-2';
+      const model = process.env.OPENROUTER_CHANNEL_MODEL || 'z-ai/glm-5.2';
       aiInsights = await generateOpenRouterCompletion(model, `User has ${userChannels.length} channels. Suggest channel management strategy.`, 'You are a YouTube channel strategist.');
     } catch (error) {
       console.error('AI channels error:', error);
@@ -36,7 +36,7 @@ export async function POST() {
       dbUser = inserted[0];
     }
     const state = encodeURIComponent(JSON.stringify({ userId: dbUser.id, clerkId: userId }));
-    const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/youtube/callback`;
+    const redirectUri = process.env.YOUTUBE_REDIRECT_URI ?? `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/youtube/callback`;
     const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
     authUrl.searchParams.set('client_id', process.env.YOUTUBE_CLIENT_ID!);
     authUrl.searchParams.set('redirect_uri', redirectUri);

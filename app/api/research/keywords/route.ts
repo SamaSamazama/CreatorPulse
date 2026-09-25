@@ -9,12 +9,14 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const { query } = await request.json();
+  const { query: rawQuery } = await request.json().catch(() => ({}));
+  const query = typeof rawQuery === 'string' ? rawQuery.trim() : '';
+  if (!query) return NextResponse.json({ error: 'Enter a keyword to analyze' }, { status: 400 });
   try {
     const results = await analyzeKeyword(userId, query);
     let aiInsights = '';
     try {
-      const model = process.env.OPENROUTER_KEYWORD_TRENDS_MODEL || 'google/gemma-3-26b-a4b';
+      const model = process.env.OPENROUTER_KEYWORD_TRENDS_MODEL || 'google/gemma-4-26b-a4b-it';
       aiInsights = await generateOpenRouterCompletion(model, `Keyword: ${query}. Results: ${JSON.stringify(results)}. Suggest keyword strategy.`, 'You are a YouTube keyword strategist.');
     } catch (error) {
       console.error('AI keywords error:', error);
