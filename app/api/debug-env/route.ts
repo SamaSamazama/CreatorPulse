@@ -1,21 +1,63 @@
 import { NextResponse } from 'next/server';
+import { createOAuth2Client } from '@/lib/youtube/client';
 
 export async function GET() {
-  const clientId = process.env.YOUTUBE_CLIENT_ID;
-  const clientSecret = process.env.YOUTUBE_CLIENT_SECRET;
-  const redirectUri = process.env.YOUTUBE_REDIRECT_URI;
+  try {
+    const redirectUri =
+      'https://my-project-sooty-tau-51.vercel.app/api/auth/youtube/callback';
 
-  return NextResponse.json({
-    youtubeClientIdConfigured: Boolean(clientId),
-    youtubeClientIdLength: clientId?.length ?? 0,
+    const oauth2Client = createOAuth2Client(redirectUri);
 
-    youtubeClientSecretConfigured: Boolean(clientSecret),
-    youtubeClientSecretLength: clientSecret?.length ?? 0,
+    const authUrl = oauth2Client.generateAuthUrl({
+      access_type: 'offline',
+      scope: [
+        'https://www.googleapis.com/auth/youtube.readonly',
+        'https://www.googleapis.com/auth/yt-analytics.readonly',
+        'https://www.googleapis.com/auth/youtube.force-ssl',
+      ],
+      prompt: 'consent',
+    });
 
-    youtubeRedirectUriConfigured: Boolean(redirectUri),
-    youtubeRedirectUri: redirectUri ?? null,
+    const parsed = new URL(authUrl);
 
-    nodeEnv: process.env.NODE_ENV,
-    vercelEnv: process.env.VERCEL_ENV ?? null,
-  });
+    const clientId =
+      parsed.searchParams.get('client_id');
+
+    const redirect =
+      parsed.searchParams.get('redirect_uri');
+
+    return NextResponse.json({
+      success: true,
+
+      generatedUrlHasClientId:
+        Boolean(clientId),
+
+      generatedClientIdLength:
+        clientId?.length ?? 0,
+
+      generatedClientIdMatchesEnv:
+        clientId === process.env.YOUTUBE_CLIENT_ID,
+
+      generatedRedirectUri:
+        redirect ?? null,
+
+      generatedRedirectUriMatchesEnv:
+        redirect === process.env.YOUTUBE_REDIRECT_URI,
+
+      googleAuthHost:
+        parsed.hostname,
+
+      path:
+        parsed.pathname,
+    });
+
+  } catch (error: any) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: error?.message ?? 'Unknown error',
+      },
+      { status: 500 }
+    );
+  }
 }
