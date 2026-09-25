@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { videos, users } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { generateOpenRouterCompletion } from '@/lib/ai/openrouter';
 export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
@@ -18,5 +19,12 @@ export async function POST(request: NextRequest) {
     url = `data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(userVideos, null, 2))}`;
   }
   const exportRecord = (await db.insert(exports).values({ userId: dbUser!.id, type, format, url }).returning()) as any[];
-  return NextResponse.json({ export: exportRecord[0], url });
+  let aiSuggestion = '';
+  try {
+    const model = process.env.OPENROUTER_SETTINGS_MODEL || 'z-ai/glm-5-2';
+    aiSuggestion = await generateOpenRouterCompletion(model, `Generated ${format} export with ${userVideos.length} videos. Suggest analysis or next steps.`, 'You are a YouTube analytics assistant.');
+  } catch (error) {
+    console.error('AI export generate error:', error);
+  }
+  return NextResponse.json({ export: exportRecord[0], url, aiSuggestion });
 }

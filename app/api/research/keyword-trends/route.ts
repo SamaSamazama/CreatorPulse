@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { keywordTrends, users, channels } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { getValidYouTubeClient } from '@/lib/youtube/client';
+import { generateOpenRouterCompletion } from '@/lib/ai/openrouter';
 function hashString(str: string): number {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -45,7 +46,14 @@ export async function POST(request: NextRequest) {
     return { month: new Date(Date.now() - i * 30 * 24 * 60 * 60 * 1000).toLocaleString('default', { month: 'short' }), volume };
   });
   const trend = await db.insert(keywordTrends).values({ userId: dbUser!.id, query, data }).returning();
-  return NextResponse.json({ trend: trend[0] });
+  let aiInsights = '';
+  try {
+    const model = process.env.OPENROUTER_KEYWORD_TRENDS_MODEL || 'google/gemma-3-26b-a4b';
+    aiInsights = await generateOpenRouterCompletion(model, `Keyword trend data: ${JSON.stringify(data)}. Suggest content opportunities.`, 'You are a YouTube trend strategist.');
+  } catch (error) {
+    console.error('AI keyword trends error:', error);
+  }
+  return NextResponse.json({ trend: trend[0], aiInsights });
 }
 export async function GET() {
   const { userId } = await auth();

@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
   }
   if (riskLevel !== 'high') {
     try {
-      const model = process.env.OPENROUTER_COACH_MODEL || 'google/gemini-2.0-flash-exp:free';
+      const model = process.env.OPENROUTER_AD_SAFETY_MODEL || 'google/gemini-2.0-flash-exp:free';
       const prompt = `Analyze this YouTube video for monetization risk. Title: ${video?.title || ''}. Description: ${video?.description || ''}. Tags: ${(video?.tags || []).join(', ')}. Return risk level (low/medium/high) and flagged phrases.`;
       const response = await generateOpenRouterCompletion(model, prompt, 'You are a YouTube monetization expert. Analyze content for advertiser-friendly guidelines.');
       const lower = response.toLowerCase();

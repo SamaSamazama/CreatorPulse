@@ -4,7 +4,14 @@ async function fetchDashboardData(forceSync = false, channelId?: string) {
   if (forceSync) params.set('sync', 'true');
   if (channelId) params.set('channelId', channelId);
   const res = await fetch(`/api/dashboard?${params.toString()}`);
-  if (!res.ok) throw new Error('Failed to fetch');
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    const errorMessage = data?.error || data?.details || 'Failed to fetch dashboard';
+    if (errorMessage.includes('YOUTUBE_TOKEN_INVALID') || errorMessage.includes('invalid_grant')) {
+      throw new Error('YOUTUBE_TOKEN_INVALID');
+    }
+    throw new Error(errorMessage);
+  }
   return res.json();
 }
 export function useDashboard(channelId?: string) {

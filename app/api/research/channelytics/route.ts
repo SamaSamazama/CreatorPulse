@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { channelytics, users, competitors, channels } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { generateOpenRouterCompletion } from '@/lib/ai/openrouter';
 export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
@@ -27,7 +28,14 @@ export async function POST(request: NextRequest) {
     subscribers: Number(((userSubscriberCount - competitorSubscriberCount) / Math.max(competitorSubscriberCount, 1) * 100).toFixed(2)),
   };
   const entry = await db.insert(channelytics).values({ userId: dbUser!.id, competitorId: competitorId || '', competitorName: competitorName || competitor?.title || 'Unknown', data: { metrics, comparison } }).returning();
-  return NextResponse.json({ entry: entry[0] });
+  let aiInsights = '';
+  try {
+    const model = process.env.OPENROUTER_CHANNELYTICS_MODEL || 'z-ai/glm-5-2';
+    aiInsights = await generateOpenRouterCompletion(model, `Comparison: ${JSON.stringify(comparison)}. Provide competitive strategy advice.`, 'You are a YouTube competitive analyst.');
+  } catch (error) {
+    console.error('AI channelytics error:', error);
+  }
+  return NextResponse.json({ entry: entry[0], aiInsights });
 }
 export async function GET() {
   const { userId } = await auth();

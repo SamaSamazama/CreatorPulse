@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { channelAudits, channels, users } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { getValidYouTubeClient } from '@/lib/youtube/client';
+import { generateOpenRouterCompletion } from '@/lib/ai/openrouter';
 import { computeAuditMetrics } from '@/lib/scoring';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -51,7 +52,14 @@ export async function POST(request: NextRequest) {
     })),
   };
   const { overallScore, metrics, recommendations } = computeAuditMetrics(metricsPayload);
-  const audit = await db.insert(channelAudits).values({ userId: dbUser.id, channelId: channel.id, overallScore, metrics, recommendations }).returning();
+  let aiInsights = '';
+  try {
+    const model = process.env.OPENROUTER_AUDIT_MODEL || 'z-ai/glm-5-2';
+    aiInsights = await generateOpenRouterCompletion(model, `Channel audit score: ${overallScore}. Metrics: ${JSON.stringify(metrics)}. Provide 3 prioritized improvement actions.`, 'You are a YouTube channel auditor.');
+  } catch (error) {
+    console.error('AI audit error:', error);
+  }
+  const audit = await db.insert(channelAudits).values({ userId: dbUser.id, channelId: channel.id, overallScore, metrics, recommendations: [...recommendations, ...(aiInsights ? [aiInsights] : [])] }).returning();
   await db.update(channels).set({ auditScore: overallScore }).where(eq(channels.id, channel.id));
   return NextResponse.json({ audit: audit[0] });
 }

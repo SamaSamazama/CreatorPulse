@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { videos, users } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { computeSeoScore } from '@/lib/scoring';
+import { generateOpenRouterCompletion } from '@/lib/ai/openrouter';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -23,10 +24,17 @@ export async function POST(request: NextRequest) {
   const tagCount = Array.isArray(tags) ? tags.length : 0;
   if (tagCount < 5) suggestions.push('Add 5-10 relevant tags including broad and long-tail keywords');
   if (suggestions.length === 0) suggestions.push('Title, description, and tags look solid for this video.');
+  let aiSuggestions = '';
+  try {
+    const model = process.env.OPENROUTER_SEO_SCORECARD_MODEL || 'z-ai/glm-5-2';
+    aiSuggestions = await generateOpenRouterCompletion(model, `Title: ${title}. Description: ${description}. Tags: ${JSON.stringify(tags)}. Score: ${score}. Suggest SEO improvements.`, 'You are a YouTube SEO expert.');
+  } catch (error) {
+    console.error('AI SEO scorecard error:', error);
+  }
   if (videoId && isValidUuid(videoId)) {
     await db.update(videos).set({ seoScore: score }).where(eq(videos.id, videoId));
   }
-  return NextResponse.json({ score, suggestions });
+  return NextResponse.json({ score, suggestions, aiSuggestions });
 }
 export async function GET() {
   const { userId } = await auth();

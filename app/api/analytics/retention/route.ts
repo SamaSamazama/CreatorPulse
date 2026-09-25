@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { retentionAnalytics, channels, users, videos } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { getValidYouTubeClient } from '@/lib/youtube/client';
+import { generateOpenRouterCompletion } from '@/lib/ai/openrouter';
 function computeRetentionCurve(viewCount: number, likeCount: number, commentCount: number) {
   const baseRetention = 60 + Math.min(viewCount / 10000, 20);
   const engagementBonus = Math.min((likeCount + commentCount * 2) / Math.max(viewCount, 1) * 1000, 20);
@@ -45,8 +46,15 @@ export async function POST(request: NextRequest) {
     console.error('YouTube fetch error:', error);
   }
   const { curve, avgRetention, dropOffPoints, recommendations } = computeRetentionCurve(viewCount, likeCount, commentCount);
+  let aiInsights = '';
+  try {
+    const model = process.env.OPENROUTER_RETENTION_MODEL || 'z-ai/glm-5-2';
+    aiInsights = await generateOpenRouterCompletion(model, `Average retention: ${avgRetention}%. Drop-offs: ${JSON.stringify(dropOffPoints)}. Provide 3 retention improvement tips.`, 'You are a YouTube audience retention expert.');
+  } catch (error) {
+    console.error('AI retention error:', error);
+  }
   const analytics = await db.insert(retentionAnalytics).values({ userId: dbUser!.id, videoId, data: curve as any, avgRetention }).returning();
-  return NextResponse.json({ analytics: analytics[0] });
+  return NextResponse.json({ analytics: analytics[0], aiInsights });
 }
 export async function GET() {
   const { userId } = await auth();

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Video, Loader2, CheckCircle2, BarChart3, Sparkles, Rocket, ShieldCheck, Play } from "lucide-react";
@@ -12,16 +12,27 @@ const steps = [
 export default function OnboardingPage() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [step, setStep] = useState(0);
+  const [authError, setAuthError] = useState<string | null>(null);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('error');
+    const message = params.get('message');
+    if (error === 'youtube_auth_failed') {
+      const detail = message ? ` Details: ${message}` : '';
+      setAuthError(`YouTube connection failed. This may be due to an expired session or revoked permissions.${detail} Please try again.`);
+    }
+  }, []);
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
       const res = await fetch('/api/channels', { method: 'POST' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || data.details || 'Failed to connect');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || data.details || `Connection failed (${res.status})`);
       if (data.url) window.location.href = data.url;
+      else throw new Error(data.error || 'No redirect URL returned');
     } catch (e: any) {
       console.error('Connect error:', e);
-      alert(e.message || 'Failed to connect channel');
+      setAuthError(e.message || 'Failed to connect channel');
     } finally {
       setIsConnecting(false);
     }
@@ -58,6 +69,11 @@ export default function OnboardingPage() {
         </div>
         <Card>
           <CardContent className="p-6">
+            {authError && (
+              <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800">
+                <p className="text-sm text-red-800 dark:text-red-200">{authError}</p>
+              </div>
+            )}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-red-50 dark:bg-red-950/40 flex items-center justify-center text-red-600 dark:text-red-400">

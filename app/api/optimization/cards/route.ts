@@ -3,13 +3,21 @@ import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { cards, users } from '@/lib/db/schema';
 import { and, eq, desc } from 'drizzle-orm';
+import { generateOpenRouterCompletion } from '@/lib/ai/openrouter';
 export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
   const { videoId, elements } = await request.json();
   const dbUser = await db.query.users.findFirst({ where: eq(users.clerkId, userId as string) });
-  const card = await db.insert(cards).values({ userId: dbUser!.id, videoId, elements }).returning();
-  return NextResponse.json({ card: card[0] });
+  let aiSuggestions = '';
+  try {
+    const model = process.env.OPENROUTER_CARDS_MODEL || 'google/gemma-3-26b-a4b';
+    aiSuggestions = await generateOpenRouterCompletion(model, `Info card elements: ${JSON.stringify(elements)}. Suggest optimal placement and content.`, 'You are a YouTube info card strategist.');
+  } catch (error) {
+    console.error('AI cards error:', error);
+  }
+  const card = await db.insert(cards).values({ userId: dbUser!.id, videoId, elements: elements as any }).returning();
+  return NextResponse.json({ card: card[0], aiSuggestions });
 }
 export async function GET(request: NextRequest) {
   const { userId } = await auth();

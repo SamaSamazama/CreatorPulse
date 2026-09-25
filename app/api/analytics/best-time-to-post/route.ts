@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { channels, users, videos } from '@/lib/db/schema';
 import { eq, desc, sql } from 'drizzle-orm';
 import { getValidYouTubeClient } from '@/lib/youtube/client';
+import { generateOpenRouterCompletion } from '@/lib/ai/openrouter';
 function computeBestPostingTime(channel: { subscriberCount?: number | null; videoCount?: number | null }) {
   const subscriberCount = Number(channel.subscriberCount || 0);
   const videoCount = Number(channel.videoCount || 0);
@@ -46,8 +47,15 @@ export async function POST(request: NextRequest) {
   const { day, hour, score } = computeBestPostingTime(channel);
   const bestTime = new Date();
   bestTime.setHours(hour, 0, 0, 0);
+  let aiSuggestion = '';
+  try {
+    const model = process.env.OPENROUTER_CALENDAR_MODEL || 'z-ai/glm-5-2';
+    aiSuggestion = await generateOpenRouterCompletion(model, `Channel has ${channel.subscriberCount} subscribers. Best computed posting time: ${bestTime.toISOString()}. Suggest optimal content type and cadence.`, 'You are a YouTube publishing strategist.');
+  } catch (error) {
+    console.error('AI best time error:', error);
+  }
   await db.update(channels).set({ bestTimeToPost: bestTime }).where(eq(channels.id, channel.id));
-  return NextResponse.json({ bestTimeToPost: bestTime.toISOString(), day, hour, score, source: 'computed' });
+  return NextResponse.json({ bestTimeToPost: bestTime.toISOString(), day, hour, score, source: 'computed', aiSuggestion });
 }
 export async function GET() {
   const { userId } = await auth();
